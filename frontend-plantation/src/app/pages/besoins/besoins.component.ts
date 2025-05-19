@@ -1,0 +1,227 @@
+import { Component, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { MatTableModule } from '@angular/material/table';
+import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatCardModule } from '@angular/material/card';
+import { BesoinService, Besoin } from '../../services/besoin.service';
+import { BesoinDialogComponent } from './besoin-dialog.component';
+
+@Component({
+  selector: 'app-besoins',
+  standalone: true,
+  imports: [
+    CommonModule,
+    MatTableModule,
+    MatButtonModule,
+    MatIconModule,
+    MatDialogModule,
+    MatSnackBarModule,
+    MatCardModule
+  ],
+  template: `
+    <div class="container">
+      <mat-card>
+        <mat-card-content>
+          <div class="header">
+            <div class="header-content">
+              <h2>Gestion des besoins</h2>
+              <div class="button-container">
+                <button mat-raised-button color="primary" (click)="openBesoinDialog()" class="small-button">
+                  <mat-icon>add</mat-icon>
+                  Nouveau Besoin
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <table mat-table [dataSource]="besoins" class="mat-elevation-z8">
+            <ng-container matColumnDef="type">
+              <th mat-header-cell *matHeaderCellDef>Type</th>
+              <td mat-cell *matCellDef="let besoin">{{besoin.type}}</td>
+            </ng-container>
+
+            <ng-container matColumnDef="description">
+              <th mat-header-cell *matHeaderCellDef>Description</th>
+              <td mat-cell *matCellDef="let besoin">{{besoin.description}}</td>
+            </ng-container>
+
+            <ng-container matColumnDef="quantite">
+              <th mat-header-cell *matHeaderCellDef>Quantité</th>
+              <td mat-cell *matCellDef="let besoin">{{besoin.quantite}}</td>
+            </ng-container>
+
+            <ng-container matColumnDef="dateBesoin">
+              <th mat-header-cell *matHeaderCellDef>Date de besoin</th>
+              <td mat-cell *matCellDef="let besoin">{{besoin.dateBesoin | date}}</td>
+            </ng-container>
+
+            <ng-container matColumnDef="statut">
+              <th mat-header-cell *matHeaderCellDef>Statut</th>
+              <td mat-cell *matCellDef="let besoin">{{besoin.statut}}</td>
+            </ng-container>
+
+            <ng-container matColumnDef="projet">
+              <th mat-header-cell *matHeaderCellDef>Projet</th>
+              <td mat-cell *matCellDef="let besoin">{{besoin.projet?.nom || '-'}}</td>
+            </ng-container>
+
+            <ng-container matColumnDef="fournisseur">
+              <th mat-header-cell *matHeaderCellDef>Fournisseur</th>
+              <td mat-cell *matCellDef="let besoin">{{besoin.fournisseur?.nom || '-'}}</td>
+            </ng-container>
+
+            <ng-container matColumnDef="actions">
+              <th mat-header-cell *matHeaderCellDef>Actions</th>
+              <td mat-cell *matCellDef="let besoin">
+                <button mat-icon-button color="primary" (click)="openBesoinDialog(besoin)">
+                  <mat-icon>edit</mat-icon>
+                </button>
+                <button mat-icon-button color="warn" (click)="deleteBesoin(besoin)">
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </td>
+            </ng-container>
+
+            <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+            <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+          </table>
+        </mat-card-content>
+      </mat-card>
+    </div>
+  `,
+  styles: [`
+    .container {
+      padding: 20px;
+    }
+    .header {
+      margin-bottom: 20px;
+    }
+    .header-content {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .button-container {
+      display: flex;
+      justify-content: flex-start;
+    }
+    .header h2 {
+      margin: 0;
+      font-size: 20px;
+      font-weight: 400;
+      color: rgba(0, 0, 0, 0.87);
+    }
+    .small-button {
+      min-width: auto;
+      padding: 0 16px;
+      height: 36px;
+      line-height: 36px;
+    }
+    table {
+      width: 100%;
+    }
+    .mat-column-actions {
+      width: 120px;
+      text-align: center;
+    }
+    mat-card {
+      margin-bottom: 20px;
+    }
+    mat-card-content {
+      padding: 20px;
+    }
+  `]
+})
+export class BesoinsComponent implements OnInit {
+  besoins: Besoin[] = [];
+  displayedColumns = ['type', 'description', 'quantite', 'dateBesoin', 'statut', 'projet', 'fournisseur', 'actions'];
+
+  constructor(
+    private besoinService: BesoinService,
+    private dialog: MatDialog,
+    private snackBar: MatSnackBar
+  ) {}
+
+  ngOnInit() {
+    this.loadBesoins();
+  }
+
+  loadBesoins() {
+    this.besoinService.getAllBesoins().subscribe({
+      next: (data) => {
+        this.besoins = data;
+      },
+      error: (error) => {
+        console.error('Erreur lors du chargement des besoins:', error);
+        this.snackBar.open('Erreur lors du chargement des besoins', 'Fermer', {
+          duration: 3000
+        });
+      }
+    });
+  }
+
+  openBesoinDialog(besoin?: Besoin) {
+    const dialogRef = this.dialog.open(BesoinDialogComponent, {
+      width: '600px',
+      data: { besoin }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        if (besoin?.id) {
+          this.besoinService.updateBesoin(besoin.id, result).subscribe({
+            next: () => {
+              this.loadBesoins();
+              this.snackBar.open('Besoin modifié avec succès', 'Fermer', {
+                duration: 3000
+              });
+            },
+            error: (error) => {
+              console.error('Erreur lors de la modification du besoin:', error);
+              this.snackBar.open('Erreur lors de la modification du besoin', 'Fermer', {
+                duration: 3000
+              });
+            }
+          });
+        } else {
+          this.besoinService.createBesoin(result).subscribe({
+            next: () => {
+              this.loadBesoins();
+              this.snackBar.open('Besoin créé avec succès', 'Fermer', {
+                duration: 3000
+              });
+            },
+            error: (error) => {
+              console.error('Erreur lors de la création du besoin:', error);
+              this.snackBar.open('Erreur lors de la création du besoin', 'Fermer', {
+                duration: 3000
+              });
+            }
+          });
+        }
+      }
+    });
+  }
+
+  deleteBesoin(besoin: Besoin) {
+    if (besoin.id && confirm('Êtes-vous sûr de vouloir supprimer ce besoin ?')) {
+      this.besoinService.deleteBesoin(besoin.id).subscribe({
+        next: () => {
+          this.loadBesoins();
+          this.snackBar.open('Besoin supprimé avec succès', 'Fermer', {
+            duration: 3000
+          });
+        },
+        error: (error) => {
+          console.error('Erreur lors de la suppression du besoin:', error);
+          this.snackBar.open('Erreur lors de la suppression du besoin', 'Fermer', {
+            duration: 3000
+          });
+        }
+      });
+    }
+  }
+} 
