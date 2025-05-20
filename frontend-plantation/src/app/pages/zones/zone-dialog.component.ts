@@ -5,7 +5,7 @@ import { MatDialogModule, MatDialogRef, MAT_DIALOG_DATA } from '@angular/materia
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
-import { Zone } from '../../services/zone.service';
+import { Zone } from '../../models/zone.model';
 
 @Component({
   selector: 'app-zone-dialog',
@@ -19,7 +19,7 @@ import { Zone } from '../../services/zone.service';
     MatButtonModule
   ],
   template: `
-    <h2 mat-dialog-title>{{ data ? 'Modifier' : 'Ajouter' }} une zone</h2>
+    <h2 mat-dialog-title>{{ data.id ? 'Modifier' : 'Ajouter' }} une zone</h2>
     <form [formGroup]="form" (ngSubmit)="onSubmit()">
       <mat-dialog-content>
         <mat-form-field appearance="fill" class="full-width">
@@ -41,7 +41,7 @@ import { Zone } from '../../services/zone.service';
       <mat-dialog-actions align="end">
         <button mat-button type="button" (click)="onCancel()">Annuler</button>
         <button mat-raised-button color="primary" type="submit" [disabled]="form.invalid">
-          {{ data ? 'Modifier' : 'Ajouter' }}
+          {{ data.id ? 'Modifier' : 'Ajouter' }}
         </button>
       </mat-dialog-actions>
     </form>
@@ -62,12 +62,12 @@ export class ZoneDialogComponent {
   constructor(
     private fb: FormBuilder,
     public dialogRef: MatDialogRef<ZoneDialogComponent>,
-    @Inject(MAT_DIALOG_DATA) public data: Zone
+    @Inject(MAT_DIALOG_DATA) public data: Partial<Zone>
   ) {
     this.form = this.fb.group({
-      nom: [data?.nom || '', Validators.required],
-      localisation: [data?.localisation || '', Validators.required],
-      description: [data?.description || '']
+      nom: [data.nom || '', Validators.required],
+      localisation: [data.localisation || '', Validators.required],
+      description: [data.description || '']
     });
   }
 
@@ -75,7 +75,7 @@ export class ZoneDialogComponent {
     if (this.form.valid) {
       const zone: Zone = {
         ...this.form.value,
-        id: this.data?.id
+        id: this.data.id
       };
       this.dialogRef.close(zone);
     }

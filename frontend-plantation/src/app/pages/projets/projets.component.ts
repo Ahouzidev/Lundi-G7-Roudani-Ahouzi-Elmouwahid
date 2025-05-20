@@ -62,7 +62,7 @@ import { ProjetDialogComponent } from './projet-dialog.component';
             <!-- Budget Column -->
             <ng-container matColumnDef="budget">
               <th mat-header-cell *matHeaderCellDef>Budget</th>
-              <td mat-cell *matCellDef="let element">{{element.budget | currency}}</td>
+              <td mat-cell *matCellDef="let element">{{element.budget | currency:'DH '}}</td>
             </ng-container>
 
             <!-- Statut Column -->

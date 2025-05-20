@@ -37,7 +37,7 @@ import { AjouterEmployeDialogComponent } from './ajouter-employe-dialog.componen
             <p><strong>Description:</strong> {{projet.description}}</p>
             <p><strong>Date de début:</strong> {{projet.dateDebut | date}}</p>
             <p><strong>Date de fin prévue:</strong> {{projet.dateFin | date}}</p>
-            <p><strong>Budget:</strong> {{projet.budget | currency}}</p>
+            <p><strong>Budget:</strong> {{projet.budget | currency:'DH '}}</p>
             <p><strong>Statut:</strong> {{projet.statut}}</p>
           </mat-card-content>
         </mat-card>

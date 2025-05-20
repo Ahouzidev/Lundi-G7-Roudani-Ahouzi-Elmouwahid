@@ -1,13 +1,13 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { MatTableModule } from '@angular/material/table';
+import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { MatDialog, MatDialogModule } from '@angular/material/dialog';
-import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
-import { MatCardModule } from '@angular/material/card';
+import { MatDialogModule, MatDialog } from '@angular/material/dialog';
+import { MatTableModule } from '@angular/material/table';
 import { Router } from '@angular/router';
-import { ZoneService, Zone } from '../../services/zone.service';
+import { ZoneService } from '../../services/zone.service';
+import { Zone } from '../../models/zone.model';
 import { ZoneDialogComponent } from './zone-dialog.component';
 import { ZoneProjetsComponent } from './zone-projets.component';
 import { ProjetDialogComponent } from '../projets/projet-dialog.component';
@@ -17,33 +17,29 @@ import { ProjetDialogComponent } from '../projets/projet-dialog.component';
   standalone: true,
   imports: [
     CommonModule,
-    MatTableModule,
+    MatCardModule,
     MatButtonModule,
     MatIconModule,
     MatDialogModule,
-    MatSnackBarModule,
-    MatCardModule
+    MatTableModule
   ],
   template: `
     <div class="container">
       <mat-card>
+        <mat-card-header>
+          <mat-card-title>Gestion des Zones</mat-card-title>
+        </mat-card-header>
+        <div class="button-container">
+          <button mat-raised-button color="primary" (click)="openZoneDialog()">
+            <mat-icon>add</mat-icon>
+            Nouvelle Zone
+          </button>
+        </div>
         <mat-card-content>
-          <div class="header">
-            <div class="header-content">
-              <h2>Gestion des zones</h2>
-              <div class="button-container">
-                <button mat-raised-button color="primary" (click)="openZoneDialog()" class="small-button">
-                  <mat-icon>add</mat-icon>
-                  Nouvelle Zone
-                </button>
-              </div>
-            </div>
-          </div>
-
           <table mat-table [dataSource]="zones" class="mat-elevation-z8">
             <ng-container matColumnDef="nom">
               <th mat-header-cell *matHeaderCellDef>Nom</th>
-              <td mat-cell *matCellDef="let zone">{{zone.nom}}</td>
+              <td mat-cell *matCellDef="let zone" class="clickable" (click)="openZoneProjets(zone)">{{zone.nom}}</td>
             </ng-container>
 
             <ng-container matColumnDef="localisation">
@@ -53,7 +49,7 @@ import { ProjetDialogComponent } from '../projets/projet-dialog.component';
 
             <ng-container matColumnDef="description">
               <th mat-header-cell *matHeaderCellDef>Description</th>
-              <td mat-cell *matCellDef="let zone">{{zone.description}}</td>
+              <td mat-cell *matCellDef="let zone">{{zone.description || 'Non spécifiée'}}</td>
             </ng-container>
 
             <ng-container matColumnDef="projets">
@@ -64,10 +60,10 @@ import { ProjetDialogComponent } from '../projets/projet-dialog.component';
             <ng-container matColumnDef="actions">
               <th mat-header-cell *matHeaderCellDef>Actions</th>
               <td mat-cell *matCellDef="let zone">
-                <button mat-icon-button color="primary" (click)="openZoneDialog(zone)">
+                <button mat-icon-button color="primary" (click)="editZone(zone); $event.stopPropagation()">
                   <mat-icon>edit</mat-icon>
                 </button>
-                <button mat-icon-button color="warn" (click)="deleteZone(zone)">
+                <button mat-icon-button color="warn" (click)="deleteZone(zone); $event.stopPropagation()">
                   <mat-icon>delete</mat-icon>
                 </button>
               </td>
@@ -84,53 +80,38 @@ import { ProjetDialogComponent } from '../projets/projet-dialog.component';
     .container {
       padding: 20px;
     }
-    .header {
-      margin-bottom: 20px;
-    }
-    .header-content {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
     .button-container {
-      display: flex;
-      justify-content: flex-start;
+      padding: 0 20px 20px 20px;
     }
-    .header h2 {
-      margin: 0;
-      font-size: 20px;
-      font-weight: 400;
-      color: rgba(0, 0, 0, 0.87);
-    }
-    .small-button {
-      min-width: auto;
-      padding: 0 16px;
-      height: 36px;
-      line-height: 36px;
+    .spacer {
+      flex: 1 1 auto;
     }
     table {
       width: 100%;
+    }
+    .clickable {
+      cursor: pointer;
+      color: #2196F3;
+    }
+    .clickable:hover {
+      text-decoration: underline;
+    }
+    mat-card-content {
+      padding: 20px;
     }
     .mat-column-actions {
       width: 120px;
       text-align: center;
     }
-    mat-card {
-      margin-bottom: 20px;
-    }
-    mat-card-content {
-      padding: 20px;
-    }
   `]
 })
 export class ZonesComponent implements OnInit {
   zones: Zone[] = [];
-  displayedColumns = ['nom', 'localisation', 'description', 'projets', 'actions'];
+  displayedColumns: string[] = ['nom', 'localisation', 'description', 'projets', 'actions'];
 
   constructor(
     private zoneService: ZoneService,
     private dialog: MatDialog,
-    private snackBar: MatSnackBar,
     private router: Router
   ) {}
 
@@ -145,49 +126,34 @@ export class ZonesComponent implements OnInit {
       },
       error: (error) => {
         console.error('Erreur lors du chargement des zones:', error);
-        this.snackBar.open('Erreur lors du chargement des zones', 'Fermer', {
-          duration: 3000
-        });
       }
     });
   }
 
   openZoneDialog(zone?: Zone) {
     const dialogRef = this.dialog.open(ZoneDialogComponent, {
-      width: '600px',
-      data: { zone }
+      width: '500px',
+      data: zone || {}
     });
 
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
-        if (zone?.id) {
-          this.zoneService.updateZone(zone.id, result).subscribe({
+        if (result.id) {
+          this.zoneService.updateZone(result.id, result).subscribe({
             next: () => {
               this.loadZones();
-              this.snackBar.open('Zone modifiée avec succès', 'Fermer', {
-                duration: 3000
-              });
             },
             error: (error) => {
-              console.error('Erreur lors de la modification de la zone:', error);
-              this.snackBar.open('Erreur lors de la modification de la zone', 'Fermer', {
-                duration: 3000
-              });
+              console.error('Erreur lors de la mise à jour de la zone:', error);
             }
           });
         } else {
           this.zoneService.createZone(result).subscribe({
             next: () => {
               this.loadZones();
-              this.snackBar.open('Zone créée avec succès', 'Fermer', {
-                duration: 3000
-              });
             },
             error: (error) => {
               console.error('Erreur lors de la création de la zone:', error);
-              this.snackBar.open('Erreur lors de la création de la zone', 'Fermer', {
-                duration: 3000
-              });
             }
           });
         }
@@ -225,20 +191,18 @@ export class ZonesComponent implements OnInit {
     });
   }
 
+  editZone(zone: Zone) {
+    this.openZoneDialog(zone);
+  }
+
   deleteZone(zone: Zone) {
-    if (zone.id && confirm('Êtes-vous sûr de vouloir supprimer cette zone ?')) {
-      this.zoneService.deleteZone(zone.id).subscribe({
+    if (confirm('Êtes-vous sûr de vouloir supprimer cette zone ?')) {
+      this.zoneService.deleteZone(zone.id!).subscribe({
         next: () => {
           this.loadZones();
-          this.snackBar.open('Zone supprimée avec succès', 'Fermer', {
-            duration: 3000
-          });
         },
         error: (error) => {
           console.error('Erreur lors de la suppression de la zone:', error);
-          this.snackBar.open('Erreur lors de la suppression de la zone', 'Fermer', {
-            duration: 3000
-          });
         }
       });
     }

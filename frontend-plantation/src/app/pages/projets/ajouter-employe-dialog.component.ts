@@ -82,7 +82,7 @@ import { ProjetService } from '../../services/projet.service';
 
           <div class="form-row">
             <mat-form-field appearance="outline">
-              <mat-label>Taux journalier</mat-label>
+              <mat-label>Taux journalier (DH)</mat-label>
               <input matInput formControlName="tauxJournalier" type="number">
             </mat-form-field>
           </div>

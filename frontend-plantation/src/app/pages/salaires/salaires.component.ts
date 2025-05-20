@@ -4,6 +4,9 @@ import { MatCardModule } from '@angular/material/card';
 import { MatTableModule } from '@angular/material/table';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+import { PresenceDialogComponent } from '../presences/presence-dialog/presence-dialog.component';
+import { EmployeService, Employe } from '../../services/employe.service';
 
 @Component({
   selector: 'app-salaires',
@@ -13,7 +16,8 @@ import { MatIconModule } from '@angular/material/icon';
     MatCardModule,
     MatTableModule,
     MatButtonModule,
-    MatIconModule
+    MatIconModule,
+    MatDialogModule
   ],
   template: `
     <div class="container">
@@ -35,4 +39,29 @@ import { MatIconModule } from '@angular/material/icon';
     }
   `]
 })
-export class SalairesComponent {} 
+export class SalairesComponent {
+  employeId: number | null = null;
+
+  constructor(
+    private dialog: MatDialog,
+    private employeService: EmployeService
+  ) {}
+
+  onDateSelected(date: Date): void {
+    if (!this.employeId) return;
+
+    const dialogRef = this.dialog.open(PresenceDialogComponent, {
+      width: '400px',
+      data: {
+        employeId: this.employeId,
+        date: date
+      }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        // Rafraîchir les données si nécessaire
+      }
+    });
+  }
+} 

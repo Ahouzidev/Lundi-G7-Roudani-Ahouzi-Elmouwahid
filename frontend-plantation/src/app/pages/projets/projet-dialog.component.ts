@@ -9,7 +9,8 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
 import { ProjetService } from '../../services/projet.service';
-import { ZoneService, Zone } from '../../services/zone.service';
+import { ZoneService } from '../../services/zone.service';
+import { Zone } from '../../models/zone.model';
 import { Projet } from '../../models/projet.model';
 
 @Component({

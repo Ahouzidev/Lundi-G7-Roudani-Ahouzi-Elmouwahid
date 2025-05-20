@@ -69,7 +69,7 @@ import { EmployeDialogComponent } from './employe-dialog.component';
 
             <ng-container matColumnDef="tauxJournalier">
               <th mat-header-cell *matHeaderCellDef>Taux journalier</th>
-              <td mat-cell *matCellDef="let employe">{{employe.tauxJournalier | currency}}</td>
+              <td mat-cell *matCellDef="let employe">{{employe.tauxJournalier | currency:'DH '}}</td>
             </ng-container>
 
             <ng-container matColumnDef="projet">
@@ -171,7 +171,7 @@ export class EmployesComponent implements OnInit {
   openEmployeDialog(employe?: Employe) {
     const dialogRef = this.dialog.open(EmployeDialogComponent, {
       width: '600px',
-      data: employe
+      data: { employe: employe }
     });
 
     dialogRef.afterClosed().subscribe(result => {

@@ -35,6 +35,7 @@ import { Projet } from '../../models/projet.model';
         <mat-form-field appearance="outline" class="full-width">
           <mat-label>Projet</mat-label>
           <mat-select formControlName="projet">
+            <mat-option [value]="null">Aucun projet</mat-option>
             <mat-option *ngFor="let projet of projets" [value]="projet">
               {{projet.nom}}
             </mat-option>
@@ -81,7 +82,7 @@ import { Projet } from '../../models/projet.model';
         </mat-form-field>
 
         <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Taux journalier</mat-label>
+          <mat-label>Taux journalier (DH)</mat-label>
           <input matInput formControlName="tauxJournalier" required type="number">
           <mat-error *ngIf="form.get('tauxJournalier')?.hasError('required')">Le taux journalier est requis</mat-error>
         </mat-form-field>
@@ -119,25 +120,34 @@ export class EmployeDialogComponent implements OnInit {
       nom: [data.employe?.nom || '', Validators.required],
       prenom: [data.employe?.prenom || '', Validators.required],
       fonction: [data.employe?.fonction || '', Validators.required],
-      dateEmbauche: [data.employe?.dateEmbauche || new Date(), Validators.required],
+      dateEmbauche: [data.employe?.dateEmbauche ? new Date(data.employe.dateEmbauche) : new Date(), Validators.required],
       numeroTelephone: [data.employe?.numeroTelephone || '', Validators.required],
       email: [data.employe?.email || '', [Validators.required, Validators.email]],
-      tauxJournalier: [data.employe?.tauxJournalier || 0, Validators.required],
+      tauxJournalier: [data.employe?.tauxJournalier || 0, [Validators.required, Validators.min(0)]],
       projet: [data.employe?.projet || null]
     });
   }
 
   ngOnInit() {
-    this.projetService.getAllProjets().subscribe(projets => {
-      this.projets = projets;
+    this.projetService.getAllProjets().subscribe({
+      next: (projets) => {
+        this.projets = projets;
+      },
+      error: (error) => {
+        console.error('Erreur lors du chargement des projets:', error);
+      }
     });
   }
 
   onSubmit() {
     if (this.form.valid) {
+      const formValue = this.form.value;
       const employeData = {
-        ...this.form.value,
-        id: this.data.employe?.id
+        ...formValue,
+        id: this.data.employe?.id,
+        dateEmbauche: formValue.dateEmbauche.toISOString().split('T')[0],
+        projet: formValue.projet ? { id: formValue.projet.id } : null,
+        tauxJournalier: Number(formValue.tauxJournalier)
       };
       this.dialogRef.close(employeData);
     }

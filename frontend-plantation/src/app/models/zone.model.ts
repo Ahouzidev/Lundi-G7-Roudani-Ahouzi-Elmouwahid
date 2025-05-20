@@ -1,9 +1,7 @@
 export interface Zone {
-  id: number;
+  id?: number;
   nom: string;
-  localisation?: string;
+  localisation: string;
   description?: string;
-  superficie?: number;
-  typeSol?: string;
   projets?: any[];
 } 
