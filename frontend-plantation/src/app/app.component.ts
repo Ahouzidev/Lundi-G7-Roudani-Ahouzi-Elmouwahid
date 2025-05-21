@@ -34,10 +34,20 @@ import { CommonModule } from '@angular/common';
         
         <div class="user-menu">
           <span class="username">{{ authService.getUsername() }}</span>
-          <button mat-button class="logout-button" (click)="signOut()">
-            <mat-icon>exit_to_app</mat-icon>
-            <span>Logout</span>
+          <button mat-button [matMenuTriggerFor]="userMenu" class="profile-button">
+            <mat-icon>account_circle</mat-icon>
+            <span>Profile</span>
           </button>
+          <mat-menu #userMenu="matMenu">
+            <button mat-menu-item routerLink="/profile">
+              <mat-icon>settings</mat-icon>
+              <span>Profile Settings</span>
+            </button>
+            <button mat-menu-item (click)="signOut()">
+              <mat-icon>exit_to_app</mat-icon>
+              <span>Logout</span>
+            </button>
+          </mat-menu>
         </div>
       </mat-toolbar>
 
@@ -118,7 +128,7 @@ import { CommonModule } from '@angular/common';
       font-size: 14px;
       opacity: 0.9;
     }
-    .logout-button {
+    .profile-button {
       display: flex;
       align-items: center;
       gap: 8px;
@@ -128,10 +138,10 @@ import { CommonModule } from '@angular/common';
       height: 36px;
       transition: background-color 0.2s;
     }
-    .logout-button:hover {
+    .profile-button:hover {
       background-color: rgba(255, 255, 255, 0.2);
     }
-    .logout-button mat-icon {
+    .profile-button mat-icon {
       margin-right: 4px;
     }
   `]

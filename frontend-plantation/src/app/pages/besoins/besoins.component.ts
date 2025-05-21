@@ -9,6 +9,7 @@ import { MatCardModule } from '@angular/material/card';
 import { MatPaginatorModule, MatPaginator } from '@angular/material/paginator';
 import { BesoinService, Besoin } from '../../services/besoin.service';
 import { BesoinDialogComponent } from './besoin-dialog.component';
+import { MatTooltipModule } from '@angular/material/tooltip';
 
 @Component({
   selector: 'app-besoins',
@@ -21,7 +22,8 @@ import { BesoinDialogComponent } from './besoin-dialog.component';
     MatDialogModule,
     MatSnackBarModule,
     MatCardModule,
-    MatPaginatorModule
+    MatPaginatorModule,
+    MatTooltipModule
   ],
   template: `
     <div class="container">
@@ -29,7 +31,6 @@ import { BesoinDialogComponent } from './besoin-dialog.component';
         <mat-card-content>
           <div class="header">
             <div class="header-content">
-              <h2>Gestion des besoins</h2>
               <div class="button-container">
                 <button mat-raised-button color="primary" (click)="openBesoinDialog()" class="small-button">
                   <mat-icon>add</mat-icon>
@@ -78,12 +79,14 @@ import { BesoinDialogComponent } from './besoin-dialog.component';
             <ng-container matColumnDef="actions">
               <th mat-header-cell *matHeaderCellDef>Actions</th>
               <td mat-cell *matCellDef="let besoin">
-                <button mat-icon-button color="primary" (click)="openBesoinDialog(besoin)">
-                  <mat-icon>edit</mat-icon>
-                </button>
-                <button mat-icon-button color="warn" (click)="deleteBesoin(besoin)">
-                  <mat-icon>delete</mat-icon>
-                </button>
+                <div class="action-buttons">
+                  <button mat-icon-button color="primary" (click)="openBesoinDialog(besoin)" matTooltip="Modifier">
+                    <mat-icon>edit</mat-icon>
+                  </button>
+                  <button mat-icon-button color="warn" (click)="deleteBesoin(besoin)" matTooltip="Supprimer">
+                    <mat-icon>delete</mat-icon>
+                  </button>
+                </div>
               </td>
             </ng-container>
 
@@ -129,6 +132,40 @@ import { BesoinDialogComponent } from './besoin-dialog.component';
     .mat-column-actions {
       width: 120px;
       text-align: center;
+      padding: 0;
+    }
+    .action-buttons {
+      display: inline-flex;
+      justify-content: center;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 0;
+    }
+    .action-buttons button {
+      width: 36px;
+      height: 36px;
+      line-height: 36px;
+      padding: 0;
+    }
+    .action-buttons mat-icon {
+      font-size: 20px;
+      width: 20px;
+      height: 20px;
+      line-height: 20px;
+    }
+    td.mat-cell {
+      text-align: center;
+      padding: 0 8px;
+    }
+    th.mat-header-cell {
+      text-align: center;
+      padding: 0 8px;
+    }
+    .mat-column-actions .mat-cell {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100%;
     }
     mat-card {
       margin-bottom: 20px;
@@ -179,7 +216,39 @@ export class BesoinsComponent implements OnInit {
 
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
-        this.loadBesoins();
+        if (result.id) {
+          // Update existing besoin
+          this.besoinService.updateBesoin(result.id, result).subscribe({
+            next: () => {
+              this.loadBesoins();
+              this.snackBar.open('Besoin modifié avec succès', 'Fermer', {
+                duration: 3000
+              });
+            },
+            error: (error) => {
+              console.error('Erreur lors de la modification du besoin:', error);
+              this.snackBar.open('Erreur lors de la modification du besoin', 'Fermer', {
+                duration: 3000
+              });
+            }
+          });
+        } else {
+          // Create new besoin
+          this.besoinService.createBesoin(result).subscribe({
+            next: () => {
+              this.loadBesoins();
+              this.snackBar.open('Besoin créé avec succès', 'Fermer', {
+                duration: 3000
+              });
+            },
+            error: (error) => {
+              console.error('Erreur lors de la création du besoin:', error);
+              this.snackBar.open('Erreur lors de la création du besoin', 'Fermer', {
+                duration: 3000
+              });
+            }
+          });
+        }
       }
     });
   }

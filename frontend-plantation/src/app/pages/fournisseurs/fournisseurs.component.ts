@@ -6,6 +6,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatPaginatorModule, MatPaginator } from '@angular/material/paginator';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { FournisseurService, Fournisseur } from '../../services/fournisseur.service';
 import { FournisseurDialogComponent } from './fournisseur-dialog.component';
 
@@ -19,12 +20,12 @@ import { FournisseurDialogComponent } from './fournisseur-dialog.component';
     MatButtonModule,
     MatIconModule,
     MatDialogModule,
-    MatPaginatorModule
+    MatPaginatorModule,
+    MatSnackBarModule
   ],
   template: `
     <mat-card>
       <mat-card-header>
-        <mat-card-title>Gestion des Fournisseurs</mat-card-title>
       </mat-card-header>
       <mat-card-content>
         <button mat-raised-button color="primary" (click)="openDialog()">
@@ -61,12 +62,14 @@ import { FournisseurDialogComponent } from './fournisseur-dialog.component';
           <ng-container matColumnDef="actions">
             <th mat-header-cell *matHeaderCellDef>Actions</th>
             <td mat-cell *matCellDef="let fournisseur">
-              <button mat-icon-button color="primary" (click)="editFournisseur(fournisseur)">
-                <mat-icon>edit</mat-icon>
-              </button>
-              <button mat-icon-button color="warn" (click)="deleteFournisseur(fournisseur)">
-                <mat-icon>delete</mat-icon>
-              </button>
+              <div class="action-buttons">
+                <button mat-icon-button color="primary" (click)="editFournisseur(fournisseur)" matTooltip="Modifier">
+                  <mat-icon>edit</mat-icon>
+                </button>
+                <button mat-icon-button color="warn" (click)="deleteFournisseur(fournisseur)" matTooltip="Supprimer">
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </div>
             </td>
           </ng-container>
 
@@ -88,6 +91,40 @@ import { FournisseurDialogComponent } from './fournisseur-dialog.component';
     .mat-column-actions {
       width: 120px;
       text-align: center;
+      padding: 0;
+    }
+    .action-buttons {
+      display: inline-flex;
+      justify-content: center;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 0;
+    }
+    .action-buttons button {
+      width: 36px;
+      height: 36px;
+      line-height: 36px;
+      padding: 0;
+    }
+    .action-buttons mat-icon {
+      font-size: 20px;
+      width: 20px;
+      height: 20px;
+      line-height: 20px;
+    }
+    td.mat-cell {
+      text-align: center;
+      padding: 0 8px;
+    }
+    th.mat-header-cell {
+      text-align: center;
+      padding: 0 8px;
+    }
+    .mat-column-actions .mat-cell {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100%;
     }
   `]
 })
@@ -98,7 +135,8 @@ export class FournisseursComponent implements OnInit {
 
   constructor(
     private fournisseurService: FournisseurService,
-    private dialog: MatDialog
+    private dialog: MatDialog,
+    private snackBar: MatSnackBar
   ) {}
 
   ngOnInit() {
@@ -128,7 +166,39 @@ export class FournisseursComponent implements OnInit {
 
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
-        this.loadFournisseurs();
+        if (result.id) {
+          // Update existing supplier
+          this.fournisseurService.updateFournisseur(result.id, result).subscribe({
+            next: () => {
+              this.loadFournisseurs();
+              this.snackBar.open('Fournisseur modifié avec succès', 'Fermer', {
+                duration: 3000
+              });
+            },
+            error: (error) => {
+              console.error('Erreur lors de la modification du fournisseur:', error);
+              this.snackBar.open('Erreur lors de la modification du fournisseur', 'Fermer', {
+                duration: 3000
+              });
+            }
+          });
+        } else {
+          // Create new supplier
+          this.fournisseurService.createFournisseur(result).subscribe({
+            next: () => {
+              this.loadFournisseurs();
+              this.snackBar.open('Fournisseur créé avec succès', 'Fermer', {
+                duration: 3000
+              });
+            },
+            error: (error) => {
+              console.error('Erreur lors de la création du fournisseur:', error);
+              this.snackBar.open('Erreur lors de la création du fournisseur', 'Fermer', {
+                duration: 3000
+              });
+            }
+          });
+        }
       }
     });
   }

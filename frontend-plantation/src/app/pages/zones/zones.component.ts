@@ -29,7 +29,6 @@ import { ProjetDialogComponent } from '../projets/projet-dialog.component';
     <div class="container">
       <mat-card>
         <mat-card-header>
-          <mat-card-title>Gestion des Zones</mat-card-title>
         </mat-card-header>
         <div class="button-container">
           <button mat-raised-button color="primary" (click)="openZoneDialog()">
@@ -62,12 +61,14 @@ import { ProjetDialogComponent } from '../projets/projet-dialog.component';
             <ng-container matColumnDef="actions">
               <th mat-header-cell *matHeaderCellDef>Actions</th>
               <td mat-cell *matCellDef="let zone">
-                <button mat-icon-button color="primary" (click)="editZone(zone); $event.stopPropagation()">
-                  <mat-icon>edit</mat-icon>
-                </button>
-                <button mat-icon-button color="warn" (click)="deleteZone(zone); $event.stopPropagation()">
-                  <mat-icon>delete</mat-icon>
-                </button>
+                <div class="action-buttons">
+                  <button mat-icon-button color="primary" (click)="editZone(zone); $event.stopPropagation()" matTooltip="Modifier">
+                    <mat-icon>edit</mat-icon>
+                  </button>
+                  <button mat-icon-button color="warn" (click)="deleteZone(zone); $event.stopPropagation()" matTooltip="Supprimer">
+                    <mat-icon>delete</mat-icon>
+                  </button>
+                </div>
               </td>
             </ng-container>
 
@@ -105,6 +106,40 @@ import { ProjetDialogComponent } from '../projets/projet-dialog.component';
     .mat-column-actions {
       width: 120px;
       text-align: center;
+      padding: 0;
+    }
+    .action-buttons {
+      display: inline-flex;
+      justify-content: center;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 0;
+    }
+    .action-buttons button {
+      width: 36px;
+      height: 36px;
+      line-height: 36px;
+      padding: 0;
+    }
+    .action-buttons mat-icon {
+      font-size: 20px;
+      width: 20px;
+      height: 20px;
+      line-height: 20px;
+    }
+    td.mat-cell {
+      text-align: center;
+      padding: 0 8px;
+    }
+    th.mat-header-cell {
+      text-align: center;
+      padding: 0 8px;
+    }
+    .mat-column-actions .mat-cell {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100%;
     }
   `]
 })

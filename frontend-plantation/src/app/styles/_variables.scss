@@ -1,0 +1,35 @@
+// Colors
+$primary-color: #1976d2;
+$text-color: #2c3e50;
+$border-color: rgba(0, 0, 0, 0.08);
+$background-color: #f8f9fa;
+$white: #ffffff;
+
+// Spacing
+$spacing-xs: 8px;
+$spacing-sm: 16px;
+$spacing-md: 24px;
+$spacing-lg: 32px;
+
+// Border radius
+$border-radius: 12px;
+
+// Shadows
+$box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+
+// Breakpoints
+$breakpoint-sm: 576px;
+$breakpoint-md: 768px;
+$breakpoint-lg: 992px;
+$breakpoint-xl: 1200px;
+
+// Container
+$container-max-width: 1400px;
+
+// Typography
+$font-family: Roboto, "Helvetica Neue", sans-serif;
+$font-size-base: 1rem;
+$font-size-lg: 1.5rem;
+$font-weight-normal: 400;
+$font-weight-medium: 500;
+$font-weight-bold: 700; 

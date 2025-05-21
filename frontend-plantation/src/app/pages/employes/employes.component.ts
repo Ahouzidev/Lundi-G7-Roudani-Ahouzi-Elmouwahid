@@ -30,7 +30,6 @@ import { EmployeDialogComponent } from './employe-dialog.component';
         <mat-card-content>
           <div class="header">
             <div class="header-content">
-              <h2>Gestion des employés</h2>
               <button mat-raised-button color="primary" (click)="openEmployeDialog()" class="small-button">
                 <mat-icon>add</mat-icon>
                 Nouvel Employé
@@ -82,15 +81,17 @@ import { EmployeDialogComponent } from './employe-dialog.component';
             <ng-container matColumnDef="actions">
               <th mat-header-cell *matHeaderCellDef>Actions</th>
               <td mat-cell *matCellDef="let employe">
-                <button mat-icon-button color="primary" (click)="openEmployeDialog(employe)">
-                  <mat-icon>edit</mat-icon>
-                </button>
-                <button mat-icon-button color="accent" (click)="viewPresences(employe)">
-                  <mat-icon>event_available</mat-icon>
-                </button>
-                <button mat-icon-button color="warn" (click)="deleteEmploye(employe)">
-                  <mat-icon>delete</mat-icon>
-                </button>
+                <div class="action-buttons">
+                  <button mat-icon-button color="primary" (click)="openEmployeDialog(employe)" matTooltip="Modifier">
+                    <mat-icon>edit</mat-icon>
+                  </button>
+                  <button mat-icon-button color="accent" (click)="viewPresences(employe)" matTooltip="Voir les présences">
+                    <mat-icon>event_available</mat-icon>
+                  </button>
+                  <button mat-icon-button color="warn" (click)="deleteEmploye(employe)" matTooltip="Supprimer">
+                    <mat-icon>delete</mat-icon>
+                  </button>
+                </div>
               </td>
             </ng-container>
 
@@ -111,15 +112,8 @@ import { EmployeDialogComponent } from './employe-dialog.component';
     }
     .header-content {
       display: flex;
-      flex-direction: column;
-      gap: 12px;
-      align-items: flex-start;
-    }
-    .header h2 {
-      margin: 0;
-      font-size: 20px;
-      font-weight: 400;
-      color: rgba(0, 0, 0, 0.87);
+      justify-content: flex-start;
+      align-items: center;
     }
     .small-button {
       min-width: auto;
@@ -133,12 +127,46 @@ import { EmployeDialogComponent } from './employe-dialog.component';
     .mat-column-actions {
       width: 120px;
       text-align: center;
+      padding: 0;
+    }
+    .action-buttons {
+      display: inline-flex;
+      justify-content: center;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 0;
+    }
+    .action-buttons button {
+      width: 36px;
+      height: 36px;
+      line-height: 36px;
+      padding: 0;
+    }
+    .action-buttons mat-icon {
+      font-size: 20px;
+      width: 20px;
+      height: 20px;
+      line-height: 20px;
     }
     mat-card {
       margin-bottom: 20px;
     }
     mat-card-content {
       padding: 20px;
+    }
+    td.mat-cell {
+      text-align: center;
+      padding: 0 8px;
+    }
+    th.mat-header-cell {
+      text-align: center;
+      padding: 0 8px;
+    }
+    .mat-column-actions .mat-cell {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100%;
     }
   `]
 })
@@ -179,12 +207,44 @@ export class EmployesComponent implements OnInit {
   openEmployeDialog(employe?: Employe) {
     const dialogRef = this.dialog.open(EmployeDialogComponent, {
       width: '500px',
-      data: employe
+      data: { employe }
     });
 
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
-        this.loadEmployes();
+        if (result.id) {
+          // Update existing employee
+          this.employeService.updateEmploye(result.id, result).subscribe({
+            next: () => {
+              this.loadEmployes();
+              this.snackBar.open('Employé modifié avec succès', 'Fermer', {
+                duration: 3000
+              });
+            },
+            error: (error) => {
+              console.error('Erreur lors de la modification de l\'employé:', error);
+              this.snackBar.open('Erreur lors de la modification de l\'employé', 'Fermer', {
+                duration: 3000
+              });
+            }
+          });
+        } else {
+          // Create new employee
+          this.employeService.createEmploye(result).subscribe({
+            next: () => {
+              this.loadEmployes();
+              this.snackBar.open('Employé créé avec succès', 'Fermer', {
+                duration: 3000
+              });
+            },
+            error: (error) => {
+              console.error('Erreur lors de la création de l\'employé:', error);
+              this.snackBar.open('Erreur lors de la création de l\'employé', 'Fermer', {
+                duration: 3000
+              });
+            }
+          });
+        }
       }
     });
   }

@@ -6,35 +6,39 @@
   background-color: #f5f5f5;
 
   h1 {
-    font-size: 3rem;
+    font-size: 2.5rem;
     color: #333;
     text-align: center;
-    padding: 2rem;
-    border-radius: 10px;
+    padding: 2.5rem;
+    border-radius: 12px;
     background-color: white;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
   }
 }
 
 .sidenav-container {
   height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
 
 .sidenav {
-  width: 250px;
-  background-color: #fafafa;
-  border-right: 1px solid rgba(0, 0, 0, 0.12);
+  width: 280px;
+  background-color: #ffffff;
+  border-right: 1px solid rgba(0, 0, 0, 0.08);
+  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.05);
 }
 
 .sidenav-header {
-  padding: 16px;
-  background-color: #f5f5f5;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+  padding: 24px 20px;
+  background-color: #f8f9fa;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
 
   h2 {
     margin: 0;
-    font-size: 1.2rem;
-    color: #333;
+    font-size: 1.4rem;
+    color: #2c3e50;
+    font-weight: 500;
   }
 }
 
@@ -43,21 +47,68 @@
 }
 
 .content {
-  padding: 20px;
-  background-color: #f5f5f5;
+  padding: 32px;
+  background-color: #f8f9fa;
   min-height: calc(100vh - 64px);
+  max-width: 1400px;
+  margin: 0 auto;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 mat-toolbar {
   position: sticky;
   top: 0;
   z-index: 1000;
+  padding: 0 16px;
+  height: 64px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
 mat-nav-list {
+  padding: 8px 0;
+
   a {
+    margin: 4px 8px;
+    border-radius: 8px;
+    height: 48px;
+    
+    mat-icon {
+      margin-right: 12px;
+      color: #5c6c7c;
+    }
+
+    span {
+      font-size: 0.95rem;
+      color: #2c3e50;
+    }
+
     &.active {
       background-color: rgba(0, 0, 0, 0.04);
+      font-weight: 500;
+
+      mat-icon {
+        color: #1976d2;
+      }
+
+      span {
+        color: #1976d2;
+      }
     }
+
+    &:hover:not(.active) {
+      background-color: rgba(0, 0, 0, 0.02);
+    }
+  }
+}
+
+// Responsive adjustments
+@media (max-width: 768px) {
+  .content {
+    padding: 20px;
+  }
+
+  .sidenav {
+    width: 240px;
   }
 }

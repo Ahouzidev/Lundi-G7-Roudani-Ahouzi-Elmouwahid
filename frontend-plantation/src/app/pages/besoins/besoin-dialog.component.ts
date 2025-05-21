@@ -176,7 +176,7 @@ export class BesoinDialogComponent implements OnInit {
         dateBesoin: formValue.dateBesoin,
         priorite: formValue.priorite,
         statut: formValue.statut,
-        projet: { id: formValue.projet.id },
+        projet: formValue.projet ? { id: formValue.projet.id } : null,
         fournisseur: formValue.fournisseur ? { id: formValue.fournisseur.id } : null,
         satisfait: false
       };

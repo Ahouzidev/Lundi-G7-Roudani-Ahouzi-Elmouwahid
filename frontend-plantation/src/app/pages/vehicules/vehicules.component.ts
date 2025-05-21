@@ -8,6 +8,8 @@ import { MatDialogModule, MatDialog } from '@angular/material/dialog';
 import { MatPaginatorModule, MatPaginator } from '@angular/material/paginator';
 import { VehiculeService, Vehicule } from '../../services/vehicule.service';
 import { VehiculeDialogComponent } from './vehicule-dialog.component';
+import { MatSnackBar } from '@angular/material/snack-bar';
+import { MatTooltipModule } from '@angular/material/tooltip';
 
 @Component({
   selector: 'app-vehicules',
@@ -19,13 +21,13 @@ import { VehiculeDialogComponent } from './vehicule-dialog.component';
     MatButtonModule,
     MatIconModule,
     MatDialogModule,
-    MatPaginatorModule
+    MatPaginatorModule,
+    MatTooltipModule
   ],
   template: `
     <div class="container">
       <mat-card>
         <mat-card-header>
-          <mat-card-title>Gestion des Véhicules</mat-card-title>
         </mat-card-header>
         <mat-card-content>
           <div class="actions">
@@ -88,12 +90,14 @@ import { VehiculeDialogComponent } from './vehicule-dialog.component';
             <ng-container matColumnDef="actions">
               <th mat-header-cell *matHeaderCellDef>Actions</th>
               <td mat-cell *matCellDef="let element">
-                <button mat-icon-button color="primary" (click)="editVehicule(element)">
-                  <mat-icon>edit</mat-icon>
-                </button>
-                <button mat-icon-button color="warn" (click)="deleteVehicule(element.id)">
-                  <mat-icon>delete</mat-icon>
-                </button>
+                <div class="action-buttons">
+                  <button mat-icon-button color="primary" (click)="editVehicule(element)" matTooltip="Modifier">
+                    <mat-icon>edit</mat-icon>
+                  </button>
+                  <button mat-icon-button color="warn" (click)="deleteVehicule(element.id)" matTooltip="Supprimer">
+                    <mat-icon>delete</mat-icon>
+                  </button>
+                </div>
               </td>
             </ng-container>
 
@@ -118,6 +122,40 @@ import { VehiculeDialogComponent } from './vehicule-dialog.component';
     .mat-column-actions {
       width: 120px;
       text-align: center;
+      padding: 0;
+    }
+    .action-buttons {
+      display: inline-flex;
+      justify-content: center;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 0;
+    }
+    .action-buttons button {
+      width: 36px;
+      height: 36px;
+      line-height: 36px;
+      padding: 0;
+    }
+    .action-buttons mat-icon {
+      font-size: 20px;
+      width: 20px;
+      height: 20px;
+      line-height: 20px;
+    }
+    td.mat-cell {
+      text-align: center;
+      padding: 0 8px;
+    }
+    th.mat-header-cell {
+      text-align: center;
+      padding: 0 8px;
+    }
+    .mat-column-actions .mat-cell {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100%;
     }
   `]
 })
@@ -128,7 +166,8 @@ export class VehiculesComponent implements OnInit {
 
   constructor(
     private vehiculeService: VehiculeService,
-    private dialog: MatDialog
+    private dialog: MatDialog,
+    private snackBar: MatSnackBar
   ) {}
 
   ngOnInit() {
@@ -158,7 +197,39 @@ export class VehiculesComponent implements OnInit {
 
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
-        this.loadVehicules();
+        if (result.id) {
+          // Update existing vehicle
+          this.vehiculeService.updateVehicule(result.id, result).subscribe({
+            next: () => {
+              this.loadVehicules();
+              this.snackBar.open('Véhicule modifié avec succès', 'Fermer', {
+                duration: 3000
+              });
+            },
+            error: (error) => {
+              console.error('Erreur lors de la modification du véhicule:', error);
+              this.snackBar.open('Erreur lors de la modification du véhicule', 'Fermer', {
+                duration: 3000
+              });
+            }
+          });
+        } else {
+          // Create new vehicle
+          this.vehiculeService.createVehicule(result).subscribe({
+            next: () => {
+              this.loadVehicules();
+              this.snackBar.open('Véhicule créé avec succès', 'Fermer', {
+                duration: 3000
+              });
+            },
+            error: (error) => {
+              console.error('Erreur lors de la création du véhicule:', error);
+              this.snackBar.open('Erreur lors de la création du véhicule', 'Fermer', {
+                duration: 3000
+              });
+            }
+          });
+        }
       }
     });
   }

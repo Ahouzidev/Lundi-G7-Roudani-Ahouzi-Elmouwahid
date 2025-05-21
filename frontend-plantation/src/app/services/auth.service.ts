@@ -60,4 +60,9 @@ export class AuthService {
   getUsername(): string {
     return this.usernameSubject.value;
   }
+
+  updateUsername(newUsername: string): void {
+    localStorage.setItem('username', newUsername);
+    this.usernameSubject.next(newUsername);
+  }
 } 

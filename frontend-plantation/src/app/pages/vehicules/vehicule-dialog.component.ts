@@ -176,7 +176,7 @@ export class VehiculeDialogComponent implements OnInit {
         dateAcquisition: formValue.dateAcquisition,
         kilometrage: formValue.kilometrage,
         statut: formValue.statut,
-        projet: { id: formValue.projet.id },
+        projet: formValue.projet ? { id: formValue.projet.id } : null,
         etat: etatValue,
         disponible: disponibleValue
       };
