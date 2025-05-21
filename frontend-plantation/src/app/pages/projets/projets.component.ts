@@ -1,10 +1,11 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
-import { MatTableModule } from '@angular/material/table';
+import { MatTableModule, MatTableDataSource } from '@angular/material/table';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatDialogModule, MatDialog } from '@angular/material/dialog';
+import { MatPaginatorModule, MatPaginator } from '@angular/material/paginator';
 import { ProjetService } from '../../services/projet.service';
 import { Projet } from '../../models/projet.model';
 import { ProjetDialogComponent } from './projet-dialog.component';
@@ -18,7 +19,8 @@ import { ProjetDialogComponent } from './projet-dialog.component';
     MatTableModule,
     MatButtonModule,
     MatIconModule,
-    MatDialogModule
+    MatDialogModule,
+    MatPaginatorModule
   ],
   template: `
     <div class="container">
@@ -34,7 +36,7 @@ import { ProjetDialogComponent } from './projet-dialog.component';
             </button>
           </div>
           
-          <table mat-table [dataSource]="projets" class="mat-elevation-z8">
+          <table mat-table [dataSource]="dataSource" class="mat-elevation-z8">
             <!-- Nom Column -->
             <ng-container matColumnDef="nom">
               <th mat-header-cell *matHeaderCellDef>Nom</th>
@@ -87,6 +89,7 @@ import { ProjetDialogComponent } from './projet-dialog.component';
             <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
             <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
           </table>
+          <mat-paginator [pageSize]="5" [pageSizeOptions]="[5, 10, 25, 100]" aria-label="Select page of projets"></mat-paginator>
         </mat-card-content>
       </mat-card>
     </div>
@@ -108,8 +111,9 @@ import { ProjetDialogComponent } from './projet-dialog.component';
   `]
 })
 export class ProjetsComponent implements OnInit {
-  projets: Projet[] = [];
+  dataSource = new MatTableDataSource<Projet>([]);
   displayedColumns: string[] = ['nom', 'description', 'dateDebut', 'dateFin', 'budget', 'statut', 'actions'];
+  @ViewChild(MatPaginator) paginator!: MatPaginator;
 
   constructor(
     private projetService: ProjetService,
@@ -120,10 +124,14 @@ export class ProjetsComponent implements OnInit {
     this.loadProjets();
   }
 
+  ngAfterViewInit() {
+    this.dataSource.paginator = this.paginator;
+  }
+
   loadProjets(): void {
     this.projetService.getAllProjets().subscribe({
       next: (data) => {
-        this.projets = data;
+        this.dataSource.data = data;
       },
       error: (error) => {
         console.error('Erreur lors du chargement des projets:', error);

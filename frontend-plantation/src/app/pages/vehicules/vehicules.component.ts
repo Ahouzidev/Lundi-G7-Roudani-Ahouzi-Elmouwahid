@@ -1,10 +1,11 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
-import { MatTableModule } from '@angular/material/table';
+import { MatTableModule, MatTableDataSource } from '@angular/material/table';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatDialogModule, MatDialog } from '@angular/material/dialog';
+import { MatPaginatorModule, MatPaginator } from '@angular/material/paginator';
 import { VehiculeService, Vehicule } from '../../services/vehicule.service';
 import { VehiculeDialogComponent } from './vehicule-dialog.component';
 
@@ -17,7 +18,8 @@ import { VehiculeDialogComponent } from './vehicule-dialog.component';
     MatTableModule,
     MatButtonModule,
     MatIconModule,
-    MatDialogModule
+    MatDialogModule,
+    MatPaginatorModule
   ],
   template: `
     <div class="container">
@@ -33,7 +35,7 @@ import { VehiculeDialogComponent } from './vehicule-dialog.component';
             </button>
           </div>
           
-          <table mat-table [dataSource]="vehicules" class="mat-elevation-z8">
+          <table mat-table [dataSource]="dataSource" class="mat-elevation-z8">
             <!-- Marque Column -->
             <ng-container matColumnDef="marque">
               <th mat-header-cell *matHeaderCellDef>Marque</th>
@@ -98,6 +100,7 @@ import { VehiculeDialogComponent } from './vehicule-dialog.component';
             <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
             <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
           </table>
+          <mat-paginator [pageSize]="5" [pageSizeOptions]="[5, 10, 25, 100]" aria-label="Select page of vehicules"></mat-paginator>
         </mat-card-content>
       </mat-card>
     </div>
@@ -119,22 +122,27 @@ import { VehiculeDialogComponent } from './vehicule-dialog.component';
   `]
 })
 export class VehiculesComponent implements OnInit {
-  vehicules: Vehicule[] = [];
+  dataSource = new MatTableDataSource<Vehicule>([]);
   displayedColumns: string[] = ['marque', 'modele', 'immatriculation', 'type', 'projet', 'dateAcquisition', 'kilometrage', 'statut', 'actions'];
+  @ViewChild(MatPaginator) paginator!: MatPaginator;
 
   constructor(
     private vehiculeService: VehiculeService,
     private dialog: MatDialog
   ) {}
 
-  ngOnInit(): void {
+  ngOnInit() {
     this.loadVehicules();
+  }
+
+  ngAfterViewInit() {
+    this.dataSource.paginator = this.paginator;
   }
 
   loadVehicules(): void {
     this.vehiculeService.getAllVehicules().subscribe({
       next: (data) => {
-        this.vehicules = data;
+        this.dataSource.data = data;
       },
       error: (error) => {
         console.error('Erreur lors du chargement des véhicules:', error);
@@ -144,30 +152,13 @@ export class VehiculesComponent implements OnInit {
 
   openDialog(vehicule?: Vehicule): void {
     const dialogRef = this.dialog.open(VehiculeDialogComponent, {
+      width: '500px',
       data: vehicule
     });
 
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
-        if (result.id) {
-          this.vehiculeService.updateVehicule(result.id, result).subscribe({
-            next: () => {
-              this.loadVehicules();
-            },
-            error: (error) => {
-              console.error('Erreur lors de la modification:', error);
-            }
-          });
-        } else {
-          this.vehiculeService.createVehicule(result).subscribe({
-            next: () => {
-              this.loadVehicules();
-            },
-            error: (error) => {
-              console.error('Erreur lors de la création:', error);
-            }
-          });
-        }
+        this.loadVehicules();
       }
     });
   }

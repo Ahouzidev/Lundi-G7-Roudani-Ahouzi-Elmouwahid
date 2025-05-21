@@ -1,11 +1,12 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { MatTableModule } from '@angular/material/table';
+import { MatTableModule, MatTableDataSource } from '@angular/material/table';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatCardModule } from '@angular/material/card';
+import { MatPaginatorModule, MatPaginator } from '@angular/material/paginator';
 import { BesoinService, Besoin } from '../../services/besoin.service';
 import { BesoinDialogComponent } from './besoin-dialog.component';
 
@@ -19,7 +20,8 @@ import { BesoinDialogComponent } from './besoin-dialog.component';
     MatIconModule,
     MatDialogModule,
     MatSnackBarModule,
-    MatCardModule
+    MatCardModule,
+    MatPaginatorModule
   ],
   template: `
     <div class="container">
@@ -37,7 +39,7 @@ import { BesoinDialogComponent } from './besoin-dialog.component';
             </div>
           </div>
 
-          <table mat-table [dataSource]="besoins" class="mat-elevation-z8">
+          <table mat-table [dataSource]="dataSource" class="mat-elevation-z8">
             <ng-container matColumnDef="type">
               <th mat-header-cell *matHeaderCellDef>Type</th>
               <td mat-cell *matCellDef="let besoin">{{besoin.type}}</td>
@@ -88,6 +90,7 @@ import { BesoinDialogComponent } from './besoin-dialog.component';
             <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
             <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
           </table>
+          <mat-paginator [pageSize]="5" [pageSizeOptions]="[5, 10, 25, 100]" aria-label="Select page of besoins"></mat-paginator>
         </mat-card-content>
       </mat-card>
     </div>
@@ -136,8 +139,9 @@ import { BesoinDialogComponent } from './besoin-dialog.component';
   `]
 })
 export class BesoinsComponent implements OnInit {
-  besoins: Besoin[] = [];
+  dataSource = new MatTableDataSource<Besoin>([]);
   displayedColumns = ['type', 'description', 'quantite', 'dateBesoin', 'statut', 'projet', 'fournisseur', 'actions'];
+  @ViewChild(MatPaginator) paginator!: MatPaginator;
 
   constructor(
     private besoinService: BesoinService,
@@ -149,10 +153,14 @@ export class BesoinsComponent implements OnInit {
     this.loadBesoins();
   }
 
+  ngAfterViewInit() {
+    this.dataSource.paginator = this.paginator;
+  }
+
   loadBesoins() {
     this.besoinService.getAllBesoins().subscribe({
       next: (data) => {
-        this.besoins = data;
+        this.dataSource.data = data;
       },
       error: (error) => {
         console.error('Erreur lors du chargement des besoins:', error);
@@ -165,43 +173,13 @@ export class BesoinsComponent implements OnInit {
 
   openBesoinDialog(besoin?: Besoin) {
     const dialogRef = this.dialog.open(BesoinDialogComponent, {
-      width: '600px',
+      width: '500px',
       data: { besoin }
     });
 
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
-        if (besoin?.id) {
-          this.besoinService.updateBesoin(besoin.id, result).subscribe({
-            next: () => {
-              this.loadBesoins();
-              this.snackBar.open('Besoin modifié avec succès', 'Fermer', {
-                duration: 3000
-              });
-            },
-            error: (error) => {
-              console.error('Erreur lors de la modification du besoin:', error);
-              this.snackBar.open('Erreur lors de la modification du besoin', 'Fermer', {
-                duration: 3000
-              });
-            }
-          });
-        } else {
-          this.besoinService.createBesoin(result).subscribe({
-            next: () => {
-              this.loadBesoins();
-              this.snackBar.open('Besoin créé avec succès', 'Fermer', {
-                duration: 3000
-              });
-            },
-            error: (error) => {
-              console.error('Erreur lors de la création du besoin:', error);
-              this.snackBar.open('Erreur lors de la création du besoin', 'Fermer', {
-                duration: 3000
-              });
-            }
-          });
-        }
+        this.loadBesoins();
       }
     });
   }

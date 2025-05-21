@@ -1,11 +1,12 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { MatTableModule } from '@angular/material/table';
+import { MatTableModule, MatTableDataSource } from '@angular/material/table';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatCardModule } from '@angular/material/card';
+import { MatPaginatorModule, MatPaginator } from '@angular/material/paginator';
 import { Router } from '@angular/router';
 import { EmployeService, Employe } from '../../services/employe.service';
 import { EmployeDialogComponent } from './employe-dialog.component';
@@ -20,7 +21,8 @@ import { EmployeDialogComponent } from './employe-dialog.component';
     MatIconModule,
     MatDialogModule,
     MatSnackBarModule,
-    MatCardModule
+    MatCardModule,
+    MatPaginatorModule
   ],
   template: `
     <div class="container">
@@ -36,7 +38,7 @@ import { EmployeDialogComponent } from './employe-dialog.component';
             </div>
           </div>
 
-          <table mat-table [dataSource]="employes" class="mat-elevation-z8">
+          <table mat-table [dataSource]="dataSource" class="mat-elevation-z8">
             <ng-container matColumnDef="nom">
               <th mat-header-cell *matHeaderCellDef>Nom</th>
               <td mat-cell *matCellDef="let employe">{{employe.nom}}</td>
@@ -95,6 +97,7 @@ import { EmployeDialogComponent } from './employe-dialog.component';
             <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
             <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
           </table>
+          <mat-paginator [pageSize]="5" [pageSizeOptions]="[5, 10, 25, 100]" aria-label="Select page of employes"></mat-paginator>
         </mat-card-content>
       </mat-card>
     </div>
@@ -140,8 +143,9 @@ import { EmployeDialogComponent } from './employe-dialog.component';
   `]
 })
 export class EmployesComponent implements OnInit {
-  employes: Employe[] = [];
+  dataSource = new MatTableDataSource<Employe>([]);
   displayedColumns = ['nom', 'prenom', 'fonction', 'dateEmbauche', 'numeroTelephone', 'email', 'tauxJournalier', 'projet', 'actions'];
+  @ViewChild(MatPaginator) paginator!: MatPaginator;
 
   constructor(
     private employeService: EmployeService,
@@ -154,10 +158,14 @@ export class EmployesComponent implements OnInit {
     this.loadEmployes();
   }
 
+  ngAfterViewInit() {
+    this.dataSource.paginator = this.paginator;
+  }
+
   loadEmployes() {
     this.employeService.getAllEmployes().subscribe({
       next: (data) => {
-        this.employes = data;
+        this.dataSource.data = data;
       },
       error: (error) => {
         console.error('Erreur lors du chargement des employés:', error);
@@ -170,50 +178,20 @@ export class EmployesComponent implements OnInit {
 
   openEmployeDialog(employe?: Employe) {
     const dialogRef = this.dialog.open(EmployeDialogComponent, {
-      width: '600px',
-      data: { employe: employe }
+      width: '500px',
+      data: employe
     });
 
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
-        if (employe?.id) {
-          this.employeService.updateEmploye(employe.id, result).subscribe({
-            next: () => {
-              this.loadEmployes();
-              this.snackBar.open('Employé modifié avec succès', 'Fermer', {
-                duration: 3000
-              });
-            },
-            error: (error) => {
-              console.error('Erreur lors de la modification de l\'employé:', error);
-              this.snackBar.open('Erreur lors de la modification de l\'employé', 'Fermer', {
-                duration: 3000
-              });
-            }
-          });
-        } else {
-          this.employeService.createEmploye(result).subscribe({
-            next: () => {
-              this.loadEmployes();
-              this.snackBar.open('Employé créé avec succès', 'Fermer', {
-                duration: 3000
-              });
-            },
-            error: (error) => {
-              console.error('Erreur lors de la création de l\'employé:', error);
-              this.snackBar.open('Erreur lors de la création de l\'employé', 'Fermer', {
-                duration: 3000
-              });
-            }
-          });
-        }
+        this.loadEmployes();
       }
     });
   }
 
   deleteEmploye(employe: Employe) {
-    if (employe.id && confirm('Êtes-vous sûr de vouloir supprimer cet employé ?')) {
-      this.employeService.deleteEmploye(employe.id).subscribe({
+    if (confirm('Êtes-vous sûr de vouloir supprimer cet employé ?')) {
+      this.employeService.deleteEmploye(employe.id!).subscribe({
         next: () => {
           this.loadEmployes();
           this.snackBar.open('Employé supprimé avec succès', 'Fermer', {
@@ -221,7 +199,7 @@ export class EmployesComponent implements OnInit {
           });
         },
         error: (error) => {
-          console.error('Erreur lors de la suppression de l\'employé:', error);
+          console.error('Erreur lors de la suppression:', error);
           this.snackBar.open('Erreur lors de la suppression de l\'employé', 'Fermer', {
             duration: 3000
           });

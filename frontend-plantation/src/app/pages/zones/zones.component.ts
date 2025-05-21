@@ -1,10 +1,11 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatDialogModule, MatDialog } from '@angular/material/dialog';
-import { MatTableModule } from '@angular/material/table';
+import { MatTableModule, MatTableDataSource } from '@angular/material/table';
+import { MatPaginatorModule, MatPaginator } from '@angular/material/paginator';
 import { Router } from '@angular/router';
 import { ZoneService } from '../../services/zone.service';
 import { Zone } from '../../models/zone.model';
@@ -21,7 +22,8 @@ import { ProjetDialogComponent } from '../projets/projet-dialog.component';
     MatButtonModule,
     MatIconModule,
     MatDialogModule,
-    MatTableModule
+    MatTableModule,
+    MatPaginatorModule
   ],
   template: `
     <div class="container">
@@ -36,7 +38,7 @@ import { ProjetDialogComponent } from '../projets/projet-dialog.component';
           </button>
         </div>
         <mat-card-content>
-          <table mat-table [dataSource]="zones" class="mat-elevation-z8">
+          <table mat-table [dataSource]="dataSource" class="mat-elevation-z8">
             <ng-container matColumnDef="nom">
               <th mat-header-cell *matHeaderCellDef>Nom</th>
               <td mat-cell *matCellDef="let zone" class="clickable" (click)="openZoneProjets(zone)">{{zone.nom}}</td>
@@ -72,6 +74,7 @@ import { ProjetDialogComponent } from '../projets/projet-dialog.component';
             <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
             <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
           </table>
+          <mat-paginator [pageSize]="5" [pageSizeOptions]="[5, 10, 25, 100]" aria-label="Select page of zones"></mat-paginator>
         </mat-card-content>
       </mat-card>
     </div>
@@ -106,8 +109,9 @@ import { ProjetDialogComponent } from '../projets/projet-dialog.component';
   `]
 })
 export class ZonesComponent implements OnInit {
-  zones: Zone[] = [];
+  dataSource = new MatTableDataSource<Zone>([]);
   displayedColumns: string[] = ['nom', 'localisation', 'description', 'projets', 'actions'];
+  @ViewChild(MatPaginator) paginator!: MatPaginator;
 
   constructor(
     private zoneService: ZoneService,
@@ -119,10 +123,14 @@ export class ZonesComponent implements OnInit {
     this.loadZones();
   }
 
+  ngAfterViewInit() {
+    this.dataSource.paginator = this.paginator;
+  }
+
   loadZones() {
     this.zoneService.getAllZones().subscribe({
       next: (data) => {
-        this.zones = data;
+        this.dataSource.data = data;
       },
       error: (error) => {
         console.error('Erreur lors du chargement des zones:', error);

@@ -1,10 +1,11 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
-import { MatTableModule } from '@angular/material/table';
+import { MatTableModule, MatTableDataSource } from '@angular/material/table';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+import { MatPaginatorModule, MatPaginator } from '@angular/material/paginator';
 import { FournisseurService, Fournisseur } from '../../services/fournisseur.service';
 import { FournisseurDialogComponent } from './fournisseur-dialog.component';
 
@@ -17,7 +18,8 @@ import { FournisseurDialogComponent } from './fournisseur-dialog.component';
     MatTableModule,
     MatButtonModule,
     MatIconModule,
-    MatDialogModule
+    MatDialogModule,
+    MatPaginatorModule
   ],
   template: `
     <mat-card>
@@ -30,7 +32,7 @@ import { FournisseurDialogComponent } from './fournisseur-dialog.component';
           Ajouter un fournisseur
         </button>
 
-        <table mat-table [dataSource]="fournisseurs" class="mat-elevation-z8">
+        <table mat-table [dataSource]="dataSource" class="mat-elevation-z8">
           <ng-container matColumnDef="nom">
             <th mat-header-cell *matHeaderCellDef>Nom</th>
             <td mat-cell *matCellDef="let fournisseur">{{fournisseur.nom}}</td>
@@ -71,6 +73,7 @@ import { FournisseurDialogComponent } from './fournisseur-dialog.component';
           <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
           <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
         </table>
+        <mat-paginator [pageSize]="5" [pageSizeOptions]="[5, 10, 25, 100]" aria-label="Select page of fournisseurs"></mat-paginator>
       </mat-card-content>
     </mat-card>
   `,
@@ -89,22 +92,27 @@ import { FournisseurDialogComponent } from './fournisseur-dialog.component';
   `]
 })
 export class FournisseursComponent implements OnInit {
-  fournisseurs: Fournisseur[] = [];
+  dataSource = new MatTableDataSource<Fournisseur>([]);
   displayedColumns: string[] = ['nom', 'typeProduit', 'adresse', 'telephone', 'email', 'actions'];
+  @ViewChild(MatPaginator) paginator!: MatPaginator;
 
   constructor(
     private fournisseurService: FournisseurService,
     private dialog: MatDialog
   ) {}
 
-  ngOnInit(): void {
+  ngOnInit() {
     this.loadFournisseurs();
+  }
+
+  ngAfterViewInit() {
+    this.dataSource.paginator = this.paginator;
   }
 
   loadFournisseurs(): void {
     this.fournisseurService.getAllFournisseurs().subscribe({
       next: (data) => {
-        this.fournisseurs = data;
+        this.dataSource.data = data;
       },
       error: (error) => {
         console.error('Erreur lors du chargement des fournisseurs:', error);
@@ -114,30 +122,13 @@ export class FournisseursComponent implements OnInit {
 
   openDialog(fournisseur?: Fournisseur): void {
     const dialogRef = this.dialog.open(FournisseurDialogComponent, {
+      width: '500px',
       data: fournisseur
     });
 
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
-        if (result.id) {
-          this.fournisseurService.updateFournisseur(result.id, result).subscribe({
-            next: () => {
-              this.loadFournisseurs();
-            },
-            error: (error) => {
-              console.error('Erreur lors de la mise à jour du fournisseur:', error);
-            }
-          });
-        } else {
-          this.fournisseurService.createFournisseur(result).subscribe({
-            next: () => {
-              this.loadFournisseurs();
-            },
-            error: (error) => {
-              console.error('Erreur lors de la création du fournisseur:', error);
-            }
-          });
-        }
+        this.loadFournisseurs();
       }
     });
   }
