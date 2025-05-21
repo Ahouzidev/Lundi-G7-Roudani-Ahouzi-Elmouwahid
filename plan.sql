@@ -3,16 +3,9 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: May 21, 2025 at 12:28 AM
+-- Generation Time: May 21, 2025 at 10:46 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
-
-
--- Création de la base de données si elle n'existe pas
-CREATE DATABASE IF NOT EXISTS `plan`;
-
--- Utilisation de la base de données
-USE `plan`;
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -144,6 +137,45 @@ CREATE TABLE `presence` (
   `employe_id` bigint(20) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Dumping data for table `presence`
+--
+
+INSERT INTO `presence` (`id`, `date`, `motif_absence`, `present`, `employe_id`) VALUES
+(64, '2025-05-06', NULL, b'1', 28),
+(65, '2025-05-06', NULL, b'1', 25),
+(66, '2025-05-06', NULL, b'1', 22),
+(67, '2025-05-06', NULL, b'1', 26),
+(68, '2025-05-06', NULL, b'1', 23),
+(69, '2025-05-06', NULL, b'1', 24),
+(70, '2025-05-06', NULL, b'1', 27),
+(71, '2025-05-06', NULL, b'1', 29),
+(72, '2025-05-06', NULL, b'1', 30),
+(73, '2025-05-06', NULL, b'1', 32),
+(74, '2025-05-06', NULL, b'1', 31),
+(75, '2025-05-07', NULL, b'1', 24),
+(76, '2025-05-07', NULL, b'1', 25),
+(77, '2025-05-07', NULL, b'1', 23),
+(78, '2025-05-07', NULL, b'1', 26),
+(79, '2025-05-07', NULL, b'1', 27),
+(80, '2025-05-07', '', b'0', 22),
+(81, '2025-05-07', NULL, b'1', 29),
+(82, '2025-05-07', NULL, b'1', 32),
+(83, '2025-05-07', NULL, b'1', 30),
+(84, '2025-05-07', NULL, b'1', 31),
+(85, '2025-05-07', NULL, b'1', 28),
+(86, '2025-05-08', '', b'0', 22),
+(87, '2025-05-08', NULL, b'1', 26),
+(88, '2025-05-08', NULL, b'1', 27),
+(89, '2025-05-08', NULL, b'1', 24),
+(90, '2025-05-08', NULL, b'1', 25),
+(91, '2025-05-08', NULL, b'1', 23),
+(92, '2025-05-08', NULL, b'1', 32),
+(93, '2025-05-08', NULL, b'1', 28),
+(94, '2025-05-08', NULL, b'1', 30),
+(95, '2025-05-08', NULL, b'1', 31),
+(96, '2025-05-08', NULL, b'1', 29);
+
 -- --------------------------------------------------------
 
 --
@@ -168,9 +200,9 @@ CREATE TABLE `projet` (
 --
 
 INSERT INTO `projet` (`id`, `actif`, `budget`, `date_debut`, `date_fin`, `description`, `nom`, `responsable`, `statut`, `zone_id`) VALUES
-(38, b'1', 1500000, '2025-01-15', '2025-12-31', 'Construction d\'un complexe industriel', 'Projet Alpha', 'Mohamed Alami', 'En cours', 29),
-(39, b'1', 2300000, '2025-02-10', '2026-03-15', 'Développement agricole durable', 'Projet Green', 'Fatima Benali', 'En cours', 30),
-(40, b'1', 800000, '2025-03-01', '2025-09-30', 'Construction de logements sociaux', 'Habitats pour tous', 'Karim Idrissi', 'En cours', 31),
+(38, b'1', 1500000, '2025-01-15', '2025-12-31', 'Construction d\'un complexe industriel', 'Projet Alpha', 'Mohamed Alami', 'EN_COURS', 29),
+(39, b'1', 2300000, '2025-02-10', '2026-03-15', 'Développement agricole durable', 'Projet Green', 'Fatima Benali', 'TERMINE', 30),
+(40, b'1', 800000, '2025-03-01', '2025-09-30', 'Construction de logements sociaux', 'Habitats pour tous', 'Karim Idrissi', 'EN_COURS', 31),
 (41, b'1', 1200000, '2025-01-05', '2025-11-20', 'Centre commercial moderne', 'MarketPlace', 'Samira Tazi', 'En planification', 32),
 (42, b'0', 3000000, '2024-11-15', '2025-12-31', 'Complexe hôtelier 5 étoiles', 'Sunset Resort', 'Hassan Benjelloun', 'En attente', 33),
 (43, b'1', 4500000, '2025-04-01', '2026-08-31', 'Modernisation des installations minières', 'MineTech', 'Nadia Chaoui', 'En cours', 34),
@@ -281,7 +313,9 @@ CREATE TABLE `_user` (
 INSERT INTO `_user` (`id`, `email`, `password`, `role`, `username`) VALUES
 (1, 'test@gmail.com', 'test123', 'USER', 'test'),
 (4, 'ahouzi@gmail.com', '$2a$10$VdT/3CKJ9tsFwbyAII0cEug3A7KT6Y7iG4HsEtFXWZMR8h9AjOeW2', 'USER', 'ahouzi'),
-(6, 'hossam@gmail.com', '$2a$10$5NVp1RV59ALGm87Zfsx.LeC4stkEqqBZ7ttV3y2lEf6dspn9/PCYa', 'USER', 'hossam');
+(6, 'hossam@gmail.com', '$2a$10$5NVp1RV59ALGm87Zfsx.LeC4stkEqqBZ7ttV3y2lEf6dspn9/PCYa', 'USER', 'hossam'),
+(7, 'uzi@gmail.com', '$2a$10$PUDkruPjO0cJyosSpbRFE.qXHi3AxRxSfHBRNInzIUJvLSY/2hccW', 'USER', 'uzi'),
+(8, 'saad@gmail.com', '$2a$10$YpI5V2v0XgISpk4CZx1Mn.lPm2ORZ5LR0.2Xc0PygKmPfkSJ9Weda', 'USER', 'saad');
 
 --
 -- Indexes for dumped tables
@@ -377,7 +411,7 @@ ALTER TABLE `fournisseur`
 -- AUTO_INCREMENT for table `presence`
 --
 ALTER TABLE `presence`
-  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=64;
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=97;
 
 --
 -- AUTO_INCREMENT for table `projet`
@@ -407,7 +441,7 @@ ALTER TABLE `zone`
 -- AUTO_INCREMENT for table `_user`
 --
 ALTER TABLE `_user`
-  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 
 --
 -- Constraints for dumped tables
