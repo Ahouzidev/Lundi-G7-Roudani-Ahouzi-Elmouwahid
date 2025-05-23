@@ -43,6 +43,12 @@ public class PresenceService {
                     .orElseThrow(() -> new RuntimeException("Employe not found"));
             presence.setEmploye(employe);
         }
+        
+        // Ensure the date is in the correct format
+        if (presence.getDate() != null) {
+            presence.setDate(presence.getDate());
+        }
+        
         return presenceRepository.save(presence);
     }
 
@@ -51,7 +57,11 @@ public class PresenceService {
         Presence presence = presenceRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Presence not found"));
         
-        presence.setDate(presenceDetails.getDate());
+        // Ensure the date is in the correct format
+        if (presenceDetails.getDate() != null) {
+            presence.setDate(presenceDetails.getDate());
+        }
+        
         presence.setPresent(presenceDetails.getPresent());
         presence.setMotifAbsence(presenceDetails.getMotifAbsence());
         

@@ -237,24 +237,18 @@ export class PresenceCalendarComponent implements OnInit {
 
     let currentDateIterator = new Date(startDate);
     const today = new Date();
-    today.setHours(0, 0, 0, 0); // Normalize today's date
-
-    console.log(`[generateCalendar] Mois de rendu (0-11): ${month}, Année: ${year}`); // Log pour le mois cible
+    today.setUTCHours(0, 0, 0, 0); // Normalize today's date to UTC midnight
 
     while (currentDateIterator <= endDate) {
       const week: Week = { days: [] };
       for (let i = 0; i < 7; i++) {
         const dayDate = new Date(currentDateIterator);
-        dayDate.setHours(0,0,0,0); // Normalize for comparison
+        dayDate.setUTCHours(0, 0, 0, 0); // Normalize for comparison
 
         const isCurrent = dayDate.getMonth() === month;
-        console.log(`[generateCalendar] Jour: ${dayDate.toDateString()}, Mois du jour: ${dayDate.getMonth()}, Est mois courant ? ${isCurrent}`); // Log pour chaque jour
+        const dayDateStr = dayDate.toISOString().split('T')[0];
 
-        const presenceOnDay = this.presences.find(p => {
-          const presenceDate = new Date(p.date);
-          presenceDate.setHours(0,0,0,0); // Normalize stored presence date
-          return presenceDate.getTime() === dayDate.getTime();
-        });
+        const presenceOnDay = this.presences.find(p => p.date === dayDateStr);
 
         week.days.push({
           date: dayDate,
@@ -262,7 +256,7 @@ export class PresenceCalendarComponent implements OnInit {
           isCurrentMonth: isCurrent,
           isPresent: presenceOnDay?.present,
           motifAbsence: presenceOnDay?.motifAbsence,
-          isToday: dayDate.getTime() === today.getTime()
+          isToday: dayDateStr === today.toISOString().split('T')[0]
         });
         currentDateIterator.setDate(currentDateIterator.getDate() + 1);
       }
@@ -283,31 +277,14 @@ export class PresenceCalendarComponent implements OnInit {
   }
 
   onDateSelected(date: Date): void {
-    console.log('[onDateSelected] Fonction appelée. Date:', date); // Log 1
-
-    if (!this.employeId) {
-      console.error('[onDateSelected] ERREUR: employeId est null ou undefined. Dialogue non ouvert.');
-      return;
-    }
-    console.log('[onDateSelected] employeId:', this.employeId); // Log 2
-
-    if (!this.dialog) {
-      console.error('[onDateSelected] ERREUR: this.dialog (MatDialog) est undefined. Dialogue non ouvert.');
-      return;
-    }
-    console.log('[onDateSelected] this.dialog est défini:', this.dialog); // Log 3
+    if (!this.employeId) return;
 
     const selectedDayDate = new Date(date);
-    selectedDayDate.setHours(0, 0, 0, 0); 
+    selectedDayDate.setUTCHours(0, 0, 0, 0);
+    const selectedDayStr = selectedDayDate.toISOString().split('T')[0];
 
-    const existingPresence = this.presences.find(p => {
-      const presenceDate = new Date(p.date);
-      presenceDate.setHours(0, 0, 0, 0); 
-      return presenceDate.getTime() === selectedDayDate.getTime();
-    });
-    console.log('[onDateSelected] existingPresence trouvée:', existingPresence); // Log 4
+    const existingPresence = this.presences.find(p => p.date === selectedDayStr);
 
-    console.log('[onDateSelected] Tentative d\'ouverture du dialogue PresenceDialogComponent...'); // Log 5
     const dialogRef = this.dialog.open<PresenceDialogComponent, PresenceDialogData, Presence | undefined>(
       PresenceDialogComponent,
       {
@@ -315,19 +292,24 @@ export class PresenceCalendarComponent implements OnInit {
         data: {
           employeId: this.employeId,
           date: selectedDayDate,
-          presence: existingPresence 
+          presence: existingPresence
         }
       }
     );
-    console.log('[onDateSelected] dialog.open appelé. dialogRef:', dialogRef); // Log 6
-
 
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
-        console.log('[onDateSelected] Dialogue fermé AVEC résultat:', result);
-        this.loadPresencesForEmploye(); 
-      } else {
-        console.log('[onDateSelected] Dialogue fermé SANS résultat (Annuler).');
+        // Update the presences array with the new/updated presence
+        const index = this.presences.findIndex(p => p.date === result.date);
+
+        if (index !== -1) {
+          this.presences[index] = result;
+        } else {
+          this.presences.push(result);
+        }
+
+        // Regenerate the calendar with the updated data
+        this.generateCalendar();
       }
     });
   }

@@ -67,7 +67,7 @@ import { MatDividerModule } from '@angular/material/divider';
 
         <mat-card-footer>
           <div class="register-link">
-            Don't have an account? 
+            Don't have an account?
             <a mat-button color="primary" routerLink="/register">Register here</a>
           </div>
         </mat-card-footer>
@@ -89,6 +89,7 @@ import { MatDividerModule } from '@angular/material/divider';
       width: 100%;
       padding: 20px;
       box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+      border-radius: 8px;
     }
 
     mat-card-header {
@@ -101,6 +102,7 @@ import { MatDividerModule } from '@angular/material/divider';
       font-size: 24px;
       margin-bottom: 8px;
       color: #333;
+      font-weight: 500;
     }
 
     mat-card-subtitle {
@@ -121,6 +123,7 @@ import { MatDividerModule } from '@angular/material/divider';
       align-items: center;
       justify-content: center;
       gap: 8px;
+      font-size: 18px;
     }
 
     .error-message {
@@ -141,6 +144,7 @@ import { MatDividerModule } from '@angular/material/divider';
       justify-content: center;
       gap: 8px;
       color: #666;
+      font-size: 14px;
     }
 
     mat-divider {

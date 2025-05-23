@@ -2,7 +2,7 @@ package com.example.backend.entity;
 
 import jakarta.persistence.*;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import java.util.Date;
+import java.time.LocalDate;
 
 @Entity
 public class Presence {
@@ -11,8 +11,7 @@ public class Presence {
     private Long id;
 
     @Column(nullable = false)
-    @Temporal(TemporalType.DATE)
-    private Date date;
+    private LocalDate date;
 
     @Column(nullable = false)
     private Boolean present;
@@ -33,11 +32,11 @@ public class Presence {
         this.id = id;
     }
 
-    public Date getDate() {
+    public LocalDate getDate() {
         return date;
     }
 
-    public void setDate(Date date) {
+    public void setDate(LocalDate date) {
         this.date = date;
     }
 

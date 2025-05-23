@@ -1,24 +1,20 @@
-import { Component, Inject, OnInit } from '@angular/core';
+import { Component, Inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { MatDialogModule, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
-import { MatRadioModule } from '@angular/material/radio';
-import { MatTableModule } from '@angular/material/table';
-import { MatCheckboxModule } from '@angular/material/checkbox';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators, FormsModule } from '@angular/forms';
+import { MatSelectModule } from '@angular/material/select';
+import { MatDatepickerModule } from '@angular/material/datepicker';
+import { MatNativeDateModule } from '@angular/material/core';
+import { Employe } from '../../../services/employe.service';
 import { PresenceService, Presence } from '../../../services/presence.service';
-import { EmployeService, Employe } from '../../../services/employe.service';
 
 export interface PresenceDialogData {
+  employeId: number;
   date: Date;
-}
-
-interface EmployeePresence {
-  employe: Employe;
-  present: boolean;
-  motifAbsence?: string;
+  presence?: Presence;
 }
 
 @Component({
@@ -27,194 +23,121 @@ interface EmployeePresence {
   imports: [
     CommonModule,
     ReactiveFormsModule,
-    FormsModule,
     MatDialogModule,
     MatFormFieldModule,
     MatInputModule,
     MatButtonModule,
-    MatRadioModule,
-    MatTableModule,
-    MatCheckboxModule
+    MatSelectModule,
+    MatDatepickerModule,
+    MatNativeDateModule
   ],
   template: `
-    <h2 mat-dialog-title>Gestion des Présences - {{ data.date | date:'dd/MM/yyyy' }}</h2>
-    <mat-dialog-content>
-      <div class="actions-bar">
-        <button mat-raised-button color="primary" (click)="markAllPresent()">
-          Marquer tous présents
+    <h2 mat-dialog-title>Marquer la présence</h2>
+    <form [formGroup]="form" (ngSubmit)="onSubmit()">
+      <mat-dialog-content>
+        <div class="date-display">
+          <p><strong>Date:</strong> {{ form.get('date')?.value | date:'dd/MM/yyyy' }}</p>
+        </div>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Statut</mat-label>
+          <mat-select formControlName="present">
+            <mat-option [value]="true">Présent</mat-option>
+            <mat-option [value]="false">Absent</mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width" *ngIf="!form.get('present')?.value">
+          <mat-label>Motif d'absence</mat-label>
+          <textarea matInput formControlName="motifAbsence" rows="3"></textarea>
+        </mat-form-field>
+      </mat-dialog-content>
+
+      <mat-dialog-actions align="end">
+        <button mat-button type="button" (click)="onCancel()">Annuler</button>
+        <button mat-raised-button color="primary" type="submit" [disabled]="form.invalid || isSubmitting">
+          {{ isSubmitting ? 'Enregistrement...' : 'Enregistrer' }}
         </button>
-        <button mat-raised-button color="warn" (click)="markAllAbsent()">
-          Marquer tous absents
-        </button>
-      </div>
-
-      <table mat-table [dataSource]="employeePresences" class="mat-elevation-z8">
-        <!-- Nom Column -->
-        <ng-container matColumnDef="nom">
-          <th mat-header-cell *matHeaderCellDef>Nom</th>
-          <td mat-cell *matCellDef="let element">{{element.employe.nom}}</td>
-        </ng-container>
-
-        <!-- Prénom Column -->
-        <ng-container matColumnDef="prenom">
-          <th mat-header-cell *matHeaderCellDef>Prénom</th>
-          <td mat-cell *matCellDef="let element">{{element.employe.prenom}}</td>
-        </ng-container>
-
-        <!-- Présent Column -->
-        <ng-container matColumnDef="present">
-          <th mat-header-cell *matHeaderCellDef>Présent</th>
-          <td mat-cell *matCellDef="let element">
-            <mat-radio-group [ngModel]="element.present" (ngModelChange)="onPresenceChange($event, element)">
-              <mat-radio-button [value]="true">Oui</mat-radio-button>
-              <mat-radio-button [value]="false">Non</mat-radio-button>
-            </mat-radio-group>
-          </td>
-        </ng-container>
-
-        <!-- Motif Absence Column -->
-        <ng-container matColumnDef="motifAbsence">
-          <th mat-header-cell *matHeaderCellDef>Motif d'absence</th>
-          <td mat-cell *matCellDef="let element">
-            <mat-form-field *ngIf="!element.present" appearance="fill">
-              <input matInput [ngModel]="element.motifAbsence" (ngModelChange)="element.motifAbsence = $event" placeholder="Motif d'absence">
-            </mat-form-field>
-          </td>
-        </ng-container>
-
-        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-        <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
-      </table>
-    </mat-dialog-content>
-    <mat-dialog-actions align="end">
-      <button mat-button (click)="onCancel()">Annuler</button>
-      <button mat-raised-button color="primary" (click)="onSave()">
-        Enregistrer
-      </button>
-    </mat-dialog-actions>
+      </mat-dialog-actions>
+    </form>
   `,
   styles: [`
-    .actions-bar {
+    mat-dialog-content {
+      min-width: 400px;
+    }
+    .full-width {
+      width: 100%;
+      margin-bottom: 15px;
+    }
+    .date-display {
       margin-bottom: 20px;
-      display: flex;
-      gap: 10px;
+      padding: 10px;
+      background-color: #f5f5f5;
+      border-radius: 4px;
     }
-    table {
-      width: 100%;
-    }
-    .mat-column-present {
-      width: 150px;
-    }
-    .mat-column-motifAbsence {
-      width: 250px;
-    }
-    mat-form-field {
-      width: 100%;
+    .date-display p {
+      margin: 0;
+      font-size: 1.1em;
     }
   `]
 })
-export class PresenceDialogComponent implements OnInit {
-  employeePresences: EmployeePresence[] = [];
-  displayedColumns: string[] = ['nom', 'prenom', 'present', 'motifAbsence'];
+export class PresenceDialogComponent {
+  form: FormGroup;
+  isSubmitting = false;
 
   constructor(
+    private fb: FormBuilder,
     public dialogRef: MatDialogRef<PresenceDialogComponent>,
     @Inject(MAT_DIALOG_DATA) public data: PresenceDialogData,
-    private presenceService: PresenceService,
-    private employeService: EmployeService
-  ) {}
-
-  ngOnInit(): void {
-    this.loadEmployees();
-  }
-
-  loadEmployees(): void {
-    this.employeService.getAllEmployes().subscribe({
-      next: (employes) => {
-        this.employeePresences = employes.map(employe => ({
-          employe,
-          present: true,
-          motifAbsence: ''
-        }));
-        this.loadExistingPresences();
-      },
-      error: (err) => {
-        console.error('Erreur lors du chargement des employés:', err);
-      }
+    private presenceService: PresenceService
+  ) {
+    this.form = this.fb.group({
+      date: [data.date, Validators.required],
+      present: [data.presence?.present ?? true, Validators.required],
+      motifAbsence: [data.presence?.motifAbsence ?? '']
     });
   }
 
-  loadExistingPresences(): void {
-    const dateStr = this.formatDate(this.data.date);
-    this.presenceService.getAllPresences().subscribe({
-      next: (presences) => {
-        const presencesForDate = presences.filter(p => p.date === dateStr);
-        this.employeePresences.forEach(ep => {
-          const existingPresence = presencesForDate.find(p => p.employe.id === ep.employe.id);
-          if (existingPresence) {
-            ep.present = existingPresence.present;
-            ep.motifAbsence = existingPresence.motifAbsence;
-          }
-        });
-      },
-      error: (err) => {
-        console.error('Erreur lors du chargement des présences:', err);
-      }
-    });
-  }
+  onSubmit(): void {
+    if (this.form.valid && !this.isSubmitting) {
+      this.isSubmitting = true;
 
-  onPresenceChange(present: boolean, element: EmployeePresence): void {
-    element.present = present;
-    if (present) {
-      element.motifAbsence = '';
+      // Get the selected date and adjust for timezone
+      const selectedDate = new Date(this.form.get('date')?.value);
+      const year = selectedDate.getFullYear();
+      const month = selectedDate.getMonth();
+      const day = selectedDate.getDate();
+      
+      // Create date string in YYYY-MM-DD format
+      const formattedDate = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+
+      const presence: Presence = {
+        id: this.data.presence?.id,
+        date: formattedDate,
+        present: this.form.get('present')?.value,
+        motifAbsence: this.form.get('present')?.value ? undefined : this.form.get('motifAbsence')?.value,
+        employe: { id: this.data.employeId }
+      };
+
+      const request$ = this.data.presence?.id
+        ? this.presenceService.updatePresence(this.data.presence.id, presence)
+        : this.presenceService.createPresence(presence);
+
+      request$.subscribe({
+        next: (response) => {
+          // Ensure the response has the correct date format
+          response.date = formattedDate;
+          this.dialogRef.close(response);
+        },
+        error: (error) => {
+          console.error('Erreur lors de l\'enregistrement de la présence:', error);
+          this.isSubmitting = false;
+        }
+      });
     }
-  }
-
-  markAllPresent(): void {
-    this.employeePresences.forEach(ep => {
-      ep.present = true;
-      ep.motifAbsence = '';
-    });
-  }
-
-  markAllAbsent(): void {
-    this.employeePresences.forEach(ep => {
-      ep.present = false;
-      ep.motifAbsence = '';
-    });
   }
 
   onCancel(): void {
     this.dialogRef.close();
-  }
-
-  onSave(): void {
-    const dateStr = this.formatDate(this.data.date);
-    const presences: Presence[] = this.employeePresences.map(ep => ({
-      date: dateStr,
-      present: ep.present,
-      motifAbsence: ep.present ? undefined : ep.motifAbsence,
-      employe: { id: ep.employe.id! }
-    }));
-
-    // Sauvegarder toutes les présences
-    const savePromises = presences.map(presence => {
-      return this.presenceService.createPresence(presence).toPromise();
-    });
-
-    Promise.all(savePromises)
-      .then(() => {
-        this.dialogRef.close(true);
-      })
-      .catch(err => {
-        console.error('Erreur lors de la sauvegarde des présences:', err);
-      });
-  }
-
-  private formatDate(date: Date): string {
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
   }
 } 
