@@ -14,9 +14,9 @@ export class AuthService {
   username$ = this.usernameSubject.asObservable();
 
   constructor(private http: HttpClient) {
-    // Check if token exists in localStorage
-    const token = localStorage.getItem('token');
-    const username = localStorage.getItem('username');
+    // Check if token exists in sessionStorage
+    const token = sessionStorage.getItem('token');
+    const username = sessionStorage.getItem('username');
     if (token) {
       this.isAuthenticatedSubject.next(true);
       if (username) {
@@ -29,8 +29,8 @@ export class AuthService {
     return this.http.post(`${this.apiUrl}/login`, { username, password }).pipe(
       tap((response: any) => {
         if (response.token) {
-          localStorage.setItem('token', response.token);
-          localStorage.setItem('username', username);
+          sessionStorage.setItem('token', response.token);
+          sessionStorage.setItem('username', username);
           this.isAuthenticatedSubject.next(true);
           this.usernameSubject.next(username);
         }
@@ -43,8 +43,8 @@ export class AuthService {
   }
 
   logout(): void {
-    localStorage.removeItem('token');
-    localStorage.removeItem('username');
+    sessionStorage.removeItem('token');
+    sessionStorage.removeItem('username');
     this.isAuthenticatedSubject.next(false);
     this.usernameSubject.next('');
   }
@@ -54,7 +54,7 @@ export class AuthService {
   }
 
   getToken(): string | null {
-    return localStorage.getItem('token');
+    return sessionStorage.getItem('token');
   }
 
   getUsername(): string {
@@ -62,7 +62,7 @@ export class AuthService {
   }
 
   updateUsername(newUsername: string): void {
-    localStorage.setItem('username', newUsername);
+    sessionStorage.setItem('username', newUsername);
     this.usernameSubject.next(newUsername);
   }
 } 

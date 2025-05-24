@@ -8,8 +8,8 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatSelectModule } from '@angular/material/select';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
-import { Employe } from '../../services/employe.service';
-import { PresenceService, Presence } from '../../services/presence.service';
+import { Employe } from '../../../../services/employe.service';
+import { PresenceService, Presence } from '../../../../services/presence.service';
 
 export interface PresenceDialogData {
   employeId?: number;
@@ -134,7 +134,7 @@ export class PresenceDialogComponent {
         id: this.data.presence?.id,
         date: formattedDate,
         present: this.form.get('present')?.value,
-        motifAbsence: this.form.get('present')?.value ? undefined : this.form.get('motifAbsence')?.value,
+        motifAbsence: this.form.get('present')?.value ? null : this.form.get('motifAbsence')?.value,
         employe: { id: employeeId }
       };
 
@@ -143,10 +143,10 @@ export class PresenceDialogComponent {
         : this.presenceService.createPresence(presence);
 
       request$.subscribe({
-        next: (response) => {
+        next: (response: Presence) => {
           this.dialogRef.close(response);
         },
-        error: (error) => {
+        error: (error: any) => {
           console.error('Erreur lors de l\'enregistrement de la présence:', error);
           this.isSubmitting = false;
         }

@@ -63,7 +63,7 @@ public class PresenceService {
         }
         
         presence.setPresent(presenceDetails.getPresent());
-        presence.setMotifAbsence(presenceDetails.getMotifAbsence());
+        presence.setMotifAbsence(presenceDetails.getPresent() ? null : presenceDetails.getMotifAbsence());
         
         if (presenceDetails.getEmploye() != null) {
             Employe employe = employeRepository.findById(presenceDetails.getEmploye().getId())

@@ -12,7 +12,8 @@ import { Employe } from '../../../services/employe.service';
 import { PresenceService, Presence } from '../../../services/presence.service';
 
 export interface PresenceDialogData {
-  employeId: number;
+  employeId?: number;
+  employe?: Employe;
   date: Date;
   presence?: Presence;
 }
@@ -91,8 +92,15 @@ export class PresenceDialogComponent {
     @Inject(MAT_DIALOG_DATA) public data: PresenceDialogData,
     private presenceService: PresenceService
   ) {
+    // Créer une nouvelle date en UTC pour éviter les problèmes de fuseau horaire
+    const utcDate = new Date(Date.UTC(
+      data.date.getFullYear(),
+      data.date.getMonth(),
+      data.date.getDate()
+    ));
+
     this.form = this.fb.group({
-      date: [data.date, Validators.required],
+      date: [utcDate, Validators.required],
       present: [data.presence?.present ?? true, Validators.required],
       motifAbsence: [data.presence?.motifAbsence ?? '']
     });
@@ -102,21 +110,28 @@ export class PresenceDialogComponent {
     if (this.form.valid && !this.isSubmitting) {
       this.isSubmitting = true;
 
-      // Get the selected date and adjust for timezone
+      // Get the selected date and ensure it's in UTC
       const selectedDate = new Date(this.form.get('date')?.value);
-      const year = selectedDate.getFullYear();
-      const month = selectedDate.getMonth();
-      const day = selectedDate.getDate();
+      const utcYear = selectedDate.getUTCFullYear();
+      const utcMonth = selectedDate.getUTCMonth();
+      const utcDay = selectedDate.getUTCDate();
       
-      // Create date string in YYYY-MM-DD format
-      const formattedDate = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+      // Create date string in YYYY-MM-DD format using UTC values
+      const formattedDate = `${utcYear}-${String(utcMonth + 1).padStart(2, '0')}-${String(utcDay).padStart(2, '0')}`;
+
+      const employeeId = this.data.employeId || this.data.employe?.id;
+      if (!employeeId) {
+        console.error('No employee ID provided');
+        this.isSubmitting = false;
+        return;
+      }
 
       const presence: Presence = {
         id: this.data.presence?.id,
         date: formattedDate,
         present: this.form.get('present')?.value,
         motifAbsence: this.form.get('present')?.value ? undefined : this.form.get('motifAbsence')?.value,
-        employe: { id: this.data.employeId }
+        employe: { id: employeeId }
       };
 
       const request$ = this.data.presence?.id
@@ -125,8 +140,6 @@ export class PresenceDialogComponent {
 
       request$.subscribe({
         next: (response) => {
-          // Ensure the response has the correct date format
-          response.date = formattedDate;
           this.dialogRef.close(response);
         },
         error: (error) => {
