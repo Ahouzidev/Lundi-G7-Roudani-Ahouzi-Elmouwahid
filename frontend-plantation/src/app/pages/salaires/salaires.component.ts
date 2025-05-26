@@ -73,6 +73,15 @@ import { map } from 'rxjs/operators';
               <td mat-cell *matCellDef="let element">{{element.tauxJournalier}} DH</td>
             </ng-container>
 
+            <ng-container matColumnDef="prime">
+              <th mat-header-cell *matHeaderCellDef>Prime</th>
+              <td mat-cell *matCellDef="let element">
+                <mat-form-field class="prime-input">
+                  <input matInput type="number" [(ngModel)]="element.prime" (ngModelChange)="updateSalary(element)" placeholder="0">
+                </mat-form-field>
+              </td>
+            </ng-container>
+
             <ng-container matColumnDef="joursTravailles">
               <th mat-header-cell *matHeaderCellDef>Jours Travaillés</th>
               <td mat-cell *matCellDef="let element">
@@ -115,6 +124,13 @@ import { map } from 'rxjs/operators';
     .mat-mdc-form-field {
       width: 200px;
     }
+    .prime-input {
+      width: 120px;
+      margin: 0;
+    }
+    .prime-input .mat-mdc-form-field-subscript-wrapper {
+      display: none;
+    }
     .working-days {
       display: flex;
       align-items: center;
@@ -132,8 +148,8 @@ import { map } from 'rxjs/operators';
   `]
 })
 export class SalairesComponent implements OnInit {
-  employees: (Employe & { salaireCalcule?: number; joursTravailles?: number })[] = [];
-  displayedColumns: string[] = ['nom', 'fonction', 'tauxJournalier', 'joursTravailles', 'salaire'];
+  employees: (Employe & { salaireCalcule?: number; joursTravailles?: number; prime?: number })[] = [];
+  displayedColumns: string[] = ['nom', 'fonction', 'tauxJournalier', 'prime', 'joursTravailles', 'salaire'];
   startDate: Date = new Date();
   endDate: Date = new Date();
 
@@ -156,7 +172,8 @@ export class SalairesComponent implements OnInit {
       this.employees = employees.map(emp => ({
         ...emp,
         joursTravailles: 0,
-        salaireCalcule: 0
+        salaireCalcule: 0,
+        prime: 0
       }));
       this.loadWorkingDays();
     });
@@ -196,10 +213,16 @@ export class SalairesComponent implements OnInit {
             const index = this.employees.findIndex(e => e.id === employeeId);
             if (index !== -1) {
               const employee = this.employees[index];
-              employee.salaireCalcule = employee.joursTravailles! * employee.tauxJournalier;
+              employee.salaireCalcule = (employee.joursTravailles! * employee.tauxJournalier) + (employee.prime || 0);
             }
           });
       }
     });
+  }
+
+  updateSalary(employee: any) {
+    if (employee.joursTravailles) {
+      employee.salaireCalcule = (employee.joursTravailles * employee.tauxJournalier) + (employee.prime || 0);
+    }
   }
 } 
