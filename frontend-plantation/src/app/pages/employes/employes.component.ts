@@ -85,9 +85,6 @@ import { EmployeDialogComponent } from './employe-dialog.component';
                   <button mat-icon-button color="primary" (click)="openEmployeDialog(employe)" matTooltip="Modifier">
                     <mat-icon>edit</mat-icon>
                   </button>
-                  <button mat-icon-button color="accent" (click)="viewPresences(employe)" matTooltip="Voir les présences">
-                    <mat-icon>event_available</mat-icon>
-                  </button>
                   <button mat-icon-button color="warn" (click)="deleteEmploye(employe)" matTooltip="Supprimer">
                     <mat-icon>delete</mat-icon>
                   </button>
